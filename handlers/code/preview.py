@@ -22,6 +22,16 @@ def check_resource(path):
         # print(uri)
         raise web.seeother(uri)
     return False
+def check_webRootOut(path):
+    source=os.path.abspath(WIKI_PATH)
+    real_path= xutils.get_real_path(path)
+    target=os.path.abspath(real_path)
+    namepart, ext = os.path.splitext(target)
+    #check admin
+    if source!=target[0:len(source)] or ext.lower()==".py":
+        if not xauth.has_login("admin"):
+            raise web.seeother("/unauthorized")
+    return False
 
 class FileItem:
 
@@ -77,6 +87,7 @@ class PreviewHandler:
 
         if os.path.isfile(path):
             check_resource(path)
+            check_webRootOut(path)
             type = "file"
             content = xutils.readfile(path)
             _, ext = os.path.splitext(path)

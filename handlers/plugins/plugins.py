@@ -70,6 +70,7 @@ INNER_TOOLS = [
     # 其他工具
     inner_link("分屏模式", "/tools/multi_win"),
     inner_link("RunJS", "/tools/runjs"),
+    inner_link("文件服务", "/api/auth/passport"),
 ]
 
 def build_inner_tools():
