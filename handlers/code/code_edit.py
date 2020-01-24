@@ -43,7 +43,9 @@ class ViewSourceHandler:
         key  = xutils.get_argument("key", "")
         type = xutils.get_argument("type", "")
         readonly = False
-        
+        name, ext = os.path.splitext(path)
+        if ext.lower()==".md":
+            template_name = "code/code_editPC.html"
 
         kw = Storage()
         

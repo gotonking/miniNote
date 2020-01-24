@@ -69,7 +69,7 @@ PAGE_OPEN     = "self"
 PAGE_WIDTH    = "1150"
 USER_CSS      = None
 USER_JS       = None
-HOME_PATH     = "/note/timeline"
+HOME_PATH     = "/note/index"
 
 # 插件相关
 LOAD_PLUGINS_ON_INIT = True

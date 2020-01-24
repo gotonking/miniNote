@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <!-- 在这里对marked框架进行引用 -->
+<meta charset="UTF-8">
+        <link rel="stylesheet" href="css/style.css" />
+        <link rel="stylesheet" href="../css/editormd.css" />
+        <script src="js/jquery.min.js"></script>
+        <script src="../editormd.min.js"></script>
+		
+		<script src="../demo/js/showdown.min.js"></script>
+		<link rel="stylesheet" href="../demo/css/demo.css">
+    
+    <script>
+	// 在这里编写AJAX代码
+  function showMarkdown()
+{
+    // 获取表单变量
+    var f=form;
+    // 创建XMLHttpRequest对象
+    var xmlhttp;
+    if (window.XMLHttpRequest)
+    {
+        // IE7+, Firefox, Chrome, Opera, Safari 浏览器执行代码
+        xmlhttp=new XMLHttpRequest();
+    }
+    else
+    {
+        // IE6, IE5 浏览器执行代码
+        xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+    }
+    
+    
+    // 得到服务器响应后，对得到的Markdown文档进行解析
+    xmlhttp.onreadystatechange=function()
+    {
+        if (xmlhttp.readyState==4 && xmlhttp.status==200)
+        {
+            // 这里调用了marked框架中的marked函数实现Markdown2HTML的解析
+			var mdValue = xmlhttp.responseText;
+			var converter = new showdown.Converter();
+			var html = converter.makeHtml(mdValue);
+            document.getElementById("content").innerHTML=html;
+        }
+    }
+    
+    
+    // 向服务器发送请求，获取你需要的Markdown文档
+    xmlhttp.open("GET",f.q.value,true);
+    xmlhttp.send();
+    }
+
+    </script>
+
+</head>
+<body>
+
+    // 在这里编辑表单代码
+    <div class="container" style="margin-top:30px">
+        <form name="form" action="" method="post">
+            <select name="q">
+                <option class="active" alue="">选择一个笔记:</option>
+                <option value="Issue20190723.md">第一个Issue20190723.md</option>
+                <option value="test.md">第二个test.md文档</option>
+                <option value="toc_data.md">第三个toc_data.md文档</option>
+                <option value="Evalue-TranscriptomeData.md">第四个Markdown文档</option>
+            </select>
+            <input type="button" value="显示" onclick="showMarkdown()">
+        </form>
+
+    // 在这里编辑空的div节点，用于后面展示解析后的内容
+    <div id="content"></div>
+    </div>
+
+</body>
+</html>

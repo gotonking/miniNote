@@ -494,7 +494,7 @@ class ViewHandler:
             raise web.found("/fs/%s" % encoded_fpath)
 
         if ext in (".md", ".csv"):
-            raise web.found("/code/preview?path=%s" % encoded_fpath)
+            raise web.found("/code/wiki/%s" % encoded_fpath)
 
         if ext == ".db":
             raise web.found("/tools/sql?path=%s" % encoded_fpath)

@@ -1,0 +1,114 @@
+{% extends base.html %}
+
+{% block head %}
+<script type="text/javascript" src="/static/lib/csv.js/csv.js"></script>
+<script type="text/javascript" src="/static/lib/marked/marked.js"></script>
+<script type="text/javascript" src="/static/js/marked-ext.js"></script>
+
+<script type="text/javascript" src="/static/lib/editormd/editormd.js"></script>
+<script type="text/javascript" src="/static/lib/editormd/lib/prettify.min.js"></script>
+<link rel="stylesheet" href="/static/lib/editormd/css/editormd.preview.css" />
+
+{% if path.endswith(".py") %}
+<script type="text/javascript" src="/static/lib/codemirror/mode/python.js"></script>
+{% end %}
+{% if path.endswith(".js") %}
+<script type="text/javascript" src="/static/lib/codemirror/mode/javascript.js"></script>
+{% end %}
+{% if path.endswith(".php") %}
+<script type="text/javascript" src="/static/lib/codemirror/mode/php.js"></script>
+{% end %}
+{% if path.endswith(".css") %}
+<script type="text/javascript" src="/static/lib/codemirror/mode/css.min.js"></script>
+{% end %}
+
+<style>
+.CodeMirror {
+    width: 60rem;
+    font-size:16px;
+    height: auto;
+}
+
+#markdown-input {
+    font-family: monospace;
+}
+
+.markdown-output-div {
+    overflow: auto;
+}
+
+</style>
+{% end %}
+
+{% block body %}
+    {% init path = "" %}
+    {% init error = "" %}
+    {% init embed = False %}
+
+    {% if error != "" %}
+    <div class="col-md-12 error">
+        {{?error}}
+    </div>
+    {% end %}
+
+    <div class="col-md-12">
+        <span id="result" style="color:green"></span>
+    </div>
+
+    <div class="grid-card">
+        {% if _is_admin and path != "" %}
+            {% set fs_path_option = '<a class="float-right" href="/code/edit?path={}&embed={}">[编辑]</a>'.format(path, embed) %}
+            {% include "mod_fs_path.html" %}
+        {% end %}
+        
+        <div id="epiceditor" class="row">
+            <div id="markdown-input-div" class="col-md-6">
+                <textarea id="markdown-input" class="form-control" name="content" rows=50>{{?content}}</textarea>
+            </div>
+
+            <div id="markdown-output-div" class="col-md-12 markdown-output-div">
+
+            </div>
+        </div>
+    </div>
+    
+
+<script>
+    function preview() {
+        if (!$("#markdown-input-div").hasClass("hide")) {
+            $("#markdown-input-div").addClass("hide");
+            $("#markdown-output-div").removeClass("col-md-6").addClass("col-md-12");
+        }
+    }
+
+    $(function () {
+        var testEditormdView;
+        var old_content = $("#markdown-input-div").val();
+        var content = $("#markdown-input").val();
+        /*
+        setInterval(function () {
+            var input = $("#markdown-input").val();
+            // not modified
+            if (input == old_content) {
+                return;
+            }
+            old_content = input;
+            
+            marked.showMenu = false;
+            //$("#markdown-output-div").html(marked.parse(input));
+            testEditormdView = editormd.markdownToHTML("markdown-output-div", {markdown:input,});
+        }, 200);
+        */
+        testEditormdView = editormd.markdownToHTML("markdown-input-div", {
+                    htmlDecode      : "style,script,iframe",  // you can filter tags decode
+                    emoji           : true,
+                    taskList        : true,
+                    tex             : true,  // 默认不解析
+                    flowChart       : true,  // 默认不解析
+                    sequenceDiagram : true,  // 默认不解析
+                });
+        //preview();
+    })
+</script>
+
+{% end %}

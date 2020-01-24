@@ -101,7 +101,7 @@ class PreviewHandler:
             type     = "file"
         
         handle_layout(kw)
-        return render("code/preview.html", 
+        return render("code/previewPC.html", 
             html_title = basename,
             os = os,
             path = path,

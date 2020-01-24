@@ -1,3 +1,4 @@
+[TOC]
 # Xnote
 
 [![Build Status](https://travis-ci.org/xupingmao/xnote.svg?branch=master)](https://travis-ci.org/xupingmao/xnote)
