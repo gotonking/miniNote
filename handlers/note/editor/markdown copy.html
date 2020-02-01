@@ -2,9 +2,7 @@
 {% include "note/template/view_header.html" %}
 
 <div class="col-md-12">
-
     <div id="epiceditor" class="row">
-
         <div id="markdown-input-div" class="col-md-6">
             <textarea id="markdown-input" class="form-control" name="content" rows=50>{{file.content}}</textarea>
         </div>
@@ -93,7 +91,7 @@
         .replace(/\n/g, '<br/>')
         .replace(/ /g, '&nbsp;');
     }
-/*
+
     $(function () {
         var old_content = $("#markdown-input-div").val();
         setInterval(function () {
@@ -113,28 +111,7 @@
         }, 200);
         preview();
     })
-*/
-    $(function () {
-        var testEditormdView;
-        var old_content = $("#markdown-input-div").val();
-        var content = $("#markdown-input").val();
 
-        testEditormdView = editormd.markdownToHTML("markdown-input-div", {
-                    htmlDecode      : "style,script,iframe",  // you can filter tags decode
-                    emoji           : true,
-                    taskList        : true,
-                    //tex             : true,  // 默认不解析
-                    //flowChart       : true,  // 默认不解析
-                    //sequenceDiagram : true,  // 默认不解析
-                });
-        //preview();
-        //showMenu();
-        $(".menu-aside").show();
-        var outtext = marked.parse(content);
-        //$("#custom-toc-container").html(outtext);
-
-    })
-   
     function registerScrollEvent() {    
         $("a").each(function (index, element) {
             // console.log(element);
@@ -158,4 +135,3 @@
         })
     }
 </script>
-

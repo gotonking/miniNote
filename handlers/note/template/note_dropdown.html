@@ -4,7 +4,7 @@
 {% if file.type == "gallery" %}
     <a class="btn" href="/note/management?parent_id={{file.id}}">管理</a>
 {% else %}
-    <a class="btn" href="/note/edit?id={{file.id}}&is_iframe={{is_iframe}}">编辑</a>
+    <a class="btn" href="/note/edit?id={{file.id}}">编辑</a>
 {% end %}
 
 <div class="dropdown">

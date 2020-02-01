@@ -10,11 +10,12 @@
     <div class="dropdown">
         <span class="dropdown-btn link btn">新建▾</span>
         <div class="dropdown-content">
-            <!-- <a class="dropdown-option" href="javascript:createGroup();">分组</a> -->
+            <a class="dropdown-option" href="javascript:createNote2();">笔记</a>
+            <a class="dropdown-option" href="javascript:createGroup();">分组</a>
             <a class="dropdown-option" href="javascript:createDocument();">文档</a>
             <a class="dropdown-option" href="javascript:createGallery();">相册</a>
             <a class="dropdown-option" href="javascript:createList()();">清单</a>
-            <!-- <a class="dropdown-option" href="javascript:uploadFile();">上传文件</a> -->
+            <a class="dropdown-option" href="javascript:uploadFile();">上传文件</a>
         </div>
     </div>
 {% end %}
@@ -40,7 +41,10 @@ function createNote0(title, type) {
         });
     });
 }
-
+/** 新建笔记 **/
+function createNote2() {
+    window.location.href="/note/add";
+}
 /** 创建相册 **/
 function createGallery() {
     createNote0("新建相册", "gallery");
@@ -80,6 +84,6 @@ function createGroup() {
 
 /** 上传文件 **/
 function uploadFile() {
-
+    window.location.href="/fs_upload";
 }
 </script>

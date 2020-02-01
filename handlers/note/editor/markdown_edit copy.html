@@ -1,22 +1,16 @@
 {% extends base.html %} {% block head %}
-
-
-
-
-
-<!--
-<script type="text/javascript" src="/static/lib/webuploader/webuploader.nolog.min.js"></script>
-<script type="text/javascript" src="/static/js/upload.js"></script>
--->
+<link rel="stylesheet" type="text/css" href="/static/lib/codemirror/codemirror.min.css">
+<link rel="stylesheet" type="text/css" href="/static/lib/codemirror/theme/monokai.min.css">
+<script type="text/javascript" src="/static/lib/codemirror/codemirror.min.js"></script>
+<script type="text/javascript" src="/static/lib/codemirror/mode/markdown.js"></script>
+<script type="text/javascript" src="/static/lib/codemirror/keymap/sublime.js"></script>
+<script type="text/javascript" src="/static/lib/csv.js/csv.js"></script>
 <script type="text/javascript" src="/static/lib/marked/marked.js"></script>
 <script type="text/javascript" src="/static/lib/webuploader/webuploader.nolog.min.js"></script>
 <script type="text/javascript" src="/static/js/upload.js"></script>
 <script type="text/javascript" src="/static/js/marked-ext.js"></script>
+<script type="text/javascript" src="/static/js/editor.js"></script>
 
-<link rel="stylesheet" type="text/css" href="/static/lib/editormd/css/editormd.css" />
-
-<script type="text/javascript" src="/static/lib/editormd/editormd.js"></script>
-<script type="text/javascript" src="/static/lib/editormd/lib/prettify.min.js"></script>
 <style>
     .CodeMirror {
         width: 100%;
@@ -102,7 +96,6 @@
 
 <div class="grid-card">
     <form id="mainFrame" action="/note/update" enctype="multipart/form-data" method="POST" class="col-md-12">
-
         <div class="col-md-12" id="submit-div">
             <div>
                 <span id="fileId" class="hide">{{file.id}}</span>
@@ -113,43 +106,43 @@
                 {% end %}
 
                 <div class="float-right">
-                    <button class="inline-btn">保存</button> <input type="submit" value="保存">
-                    <input type="button" id="ActionCancel" class="inline-btn" value="取消" />
+                    <button class="inline-btn">保存</button>
                 </div>
             </div>
         </div>
-        <span id="result" style="color:green"></span>
-        <div class="col-md-12 toolbox">
-            <input type="button" id="insertCode" class="toolbox-btn" value="代码" />
-            <input type="button" id="insertStrong" class="toolbox-btn" value="加粗" />
-            <input type="button" id="insertDel" class="toolbox-btn" value="删除线" />
-            <input type="file" id="file" name="file" class="hide" />
-            <input type="button" id="uploadBtn" class="toolbox-btn" value="文件" />
-            <input type="button" class="toolbox-btn btn-primary" onclick="togglePreview(this)" value="预览" />
-            <span id="uploadProgress" class="upload-progress"></span>
-            <span id="autosaveResult" class="hide">自动保存成功</span>
-        </div>
+        <div class="col-md-12">
+            <span id="result" style="color:green"></span>
+            <div class="col-md-12 toolbox">
+                <input type="button" id="insertCode" class="toolbox-btn" value="代码" />
+                <input type="button" id="insertStrong" class="toolbox-btn" value="加粗" />
+                <input type="button" id="insertDel" class="toolbox-btn" value="删除线" />
+                <input type="file" id="file" name="file" class="hide" />
+                <input type="button" id="uploadBtn" class="toolbox-btn" value="文件" />
+                <input type="button" class="toolbox-btn btn-primary" onclick="togglePreview(this)" value="预览" />
+                <span id="uploadProgress" class="upload-progress"></span>
+                <span id="autosaveResult" class="hide">自动保存成功</span>
+            </div>
 
-        <div class="col-md-12" id="editor-area">
-            <div class="col-md-12">
-                <div id="edit-div">
-                    <input style="display:none" name="id" value="{{file.id}}" />
-                    <input type="text" name="version" value="{{file.version}}" class="hide" />
-                    <input type="text" name="type" value="md" class="hide" />
-                </div>
-            </div>
-            <div class="col-md-12">
-                <div id="editor" class="col-md-12" style="height: auto; ">
-                    <div id="markdown-input-div" class="col-md-12">
-                        <textarea id="markdown-input" class="form-control" name="content" rows=50>{{file.content}}</textarea>
+            <div class="col-md-12" id="editor-area">
+                <div class="col-md-12">
+                    <div id="edit-div">
+                        <input style="display:none" name="id" value="{{file.id}}" />
+                        <input type="text" name="version" value="{{file.version}}" class="hide" />
+                        <input type="text" name="type" value="md" class="hide" />
                     </div>
-    
-                    <div id="markdown-output-div" class="col-md-6 hide"></div>
+                </div>
+
+                <div class="col-md-12">
+                    <div id="editor" class="col-md-12" style="height: auto; ">
+                        <div id="markdown-input-div" class="col-md-12">
+                            <textarea id="markdown-input" class="form-control" name="content" rows=50>{{file.content}}</textarea>
+                        </div>
+
+                        <div id="markdown-output-div" class="col-md-6 hide"></div>
+                    </div>
                 </div>
             </div>
-
         </div>
-
     </form>
 </div>
 
@@ -168,8 +161,8 @@
     $("#uploadBtn").on("click", function () {
         $("#file").click();
     })
-/*
-    function initMdCodeMirrorbak() {
+
+    function initMdCodeMirror() {
         if (window.codeMirror) {
             return;
         }
@@ -185,57 +178,7 @@
             height: "auto"
         });
     }
-    */
-    var testEditor;
-    function initMdCodeMirror() {
-        var height = Math.max(500, $("#markdown-output-div").height());
-        var input = $("#markdown-input").val();
-        testEditor = editormd("markdown-input-div", {
-                        width: "100%",
-                        height:  $("#mainFrame").height()+40,
-                        path : '/static/lib/editormd/lib/',
-                        theme : "dark",
-                        previewTheme : "dark",
-                        editorTheme : "pastel-on-dark",
-                        markdown:input,
-                        codeFold : true,
-                        //syncScrolling : false,
-                        saveHTMLToTextarea : true,    // 保存 HTML 到 Textarea
-                        searchReplace : true,
-                        watch : false,                // 关闭实时预览
-                        htmlDecode : "style,script,iframe|on*",            // 开启 HTML 标签解析，为了安全性，默认不开启    
-                        //toolbar  : false,             //关闭工具栏
-                        //previewCodeHighlight : false, // 关闭预览 HTML 的代码块高亮，默认开启
-                        emoji : true,
-                        taskList : true,
-                        tocm            : true,         // Using [TOCM]
-                        //tex : true,                   // 开启科学公式TeX语言支持，默认关闭
-                        //flowChart : true,             // 开启流程图支持，默认关闭
-                        //sequenceDiagram : true,       // 开启时序/序列图支持，默认关闭,
-                        //dialogLockScreen : false,   // 设置弹出层对话框不锁屏，全局通用，默认为true
-                        //dialogShowMask : false,     // 设置弹出层对话框显示透明遮罩层，全局通用，默认为true
-                        //dialogDraggable : false,    // 设置弹出层对话框不可拖动，全局通用，默认为true
-                        //dialogMaskOpacity : 0.4,    // 设置透明遮罩层的透明度，全局通用，默认值为0.1
-                        //dialogMaskBgColor : "#000", // 设置透明遮罩层的背景颜色，全局通用，默认为#fff
-                        imageUpload : true,
-                        imageFormats : ["jpg", "jpeg", "gif", "png", "bmp", "webp"],
-                        imageUploadURL : "http://localhost/markdown/examples/php/cross-domain-upload.php",
-                        crossDomainUpload : true,
-                        uploadCallbackURL : "http://localhost:8090/static/lib/editormd/examples/php/upload_callback.html",
-                        onload : function() {
-                            console.log('onload', this);
-                            //this.fullscreen();
-                            //this.unwatch();
-                            //this.watch().fullscreen();
 
-                            //this.setMarkdown("#PHP");
-                            //this.width("100%");
-                            //this.height(480);
-                            //this.resize("100%", 640);
-                        }
-                    });
-            window.codeMirror=testEditor;
-    }
     function edit() {
         var clientWidth = document.body.clientWidth;
         if (clientWidth < 500) {
@@ -275,8 +218,6 @@
     }
 
     function togglePreview(target) {
-        testEditor.previewing();
-        /*
         if ($("#markdown-input-div").hasClass("col-md-12")) {
             // 全屏模式
             $("#markdown-input-div").addClass("col-md-6").removeClass("col-md-12");
@@ -288,7 +229,6 @@
             $("#markdown-output-div").addClass("hide");
             $(target).val("预览");
         }
-        */
         // 重新初始化codeMirror
         codeMirror.setSize("auto", "auto");
     }
@@ -340,8 +280,7 @@
         }
 
         updatePreview();
-        //edit();
-        initMdCodeMirror()
+        edit();
 
         updatePreviewIntervalId = setInterval(updatePreview, 200);
         // setInterval(autoSave, 1000*30);
@@ -367,11 +306,6 @@
                 codeMirror.replaceSelection(chars + selection + chars, "around");
             }
         }
-        var window_cancel=false;
-        $("#ActionCancel").on("click", function () {
-            window_cancel=true;
-            location.href = "/note/{{file.id}}";
-        });
 
         $("#insertStrong").on("click", function () {
             toggleSurround("**");
@@ -482,25 +416,13 @@
 
         $("#mainFrame").on("submit", function (e) {
             console.log(e);
-            var input = $("#markdown-input").val();
-            // not modified
-            if (input == lastSaved) {
-                window_cancel=true;
-                location.href = "/note/{{file.id}}";
-            } else {
-                window.SUBMIT_FORM = true;
-            }
-            
+            window.SUBMIT_FORM = true;
         });
 
         // 退出确认的询问
         window.onbeforeunload=function(e){
             if (window.SUBMIT_FORM) {
                 console.log("form is submit");
-                return;
-            }
-            if (window_cancel) {
-                console.log("form is Cancel");
                 return;
             }
             var e = window.event||e;  

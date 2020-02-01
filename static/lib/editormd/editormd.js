@@ -3660,7 +3660,17 @@
                 return "<li>" + this.atLink(this.emoji(text)) + "</li>";
             }
         };
-        
+
+        // 重写img
+        markedRenderer.image =function(href, title, text) {
+            var out = '<p class="marked-img"><img class="x-photo" src="' + href + '" alt="' + text + '" style="max-width:100%;"';
+            if (title) {
+            out += ' title="' + title + '"';
+            }
+            out += this.options.xhtml ? '/>' : '>';
+            out += '</p>'
+            return out;
+        };
         return markedRenderer;
     };
     

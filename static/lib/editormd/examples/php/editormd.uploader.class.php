@@ -113,7 +113,7 @@
 
             $this->fileExt  = $this->getFileExt($this->files["name"]); //取得扩展名
             
-            $this->setSeveName();
+            $this->setSaveName();
             
             return $this->moveFile();
         }
@@ -250,13 +250,17 @@
          * @return  void
          */
         
-         private function setSeveName()
+         private function setSaveName()
          {             
-            $this->saveName = $this->randomFileName().".".$this->fileExt;
+            $this->saveName = $this->randomFileName();
              
             if($this->saveName == '') //如果没生成随机文件名，就保留原文件名
             {
                 $this->saveName = $this->files['name'];
+            }
+            else
+            {
+                $this->saveName = $this->saveName.".".$this->fileExt;
             }
          }
 
