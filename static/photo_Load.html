@@ -1,0 +1,728 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+
+<title>软件功能介绍 - 功能介绍 - 迷你屋</title>
+<meta name="keywords" content="" />
+<meta name="description" content="" />
+<link rel="stylesheet" type="text/css" href="/static/css/viewer.min.css" />
+
+<link rel="stylesheet" type="text/css" href="http://localhost:83/templates/main/css/style.css">
+<script type="text/javascript" charset="utf-8" src="/static/lib/jquery/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" charset="utf-8" src="/static/js/viewer-jquery.min.js"></script>
+
+<link href="/static/lib/photoswipe/site.css?v=4.1.3-1.0.4" rel="stylesheet" />
+<link href="/static/lib/photoswipe/photoswipe.css?v=4.1.3-1.0.4" rel="stylesheet" />
+<link href="/static/lib/photoswipe/default-skin/default-skin.css?v=4.1.3-1.0.4" rel="stylesheet" />
+
+<script src="/static/lib/photoswipe/photoswipe.js?v=4.1.3-1.0.4"></script>
+<script src="/static/lib/photoswipe/photoswipe-ui-default.min.js?v=4.1.3-1.0.4"></script>
+	  
+
+<script type="text/javascript">
+// 记录当前时间戳
+var start_time = new Date().getTime()
+// 图片地址 后面加时间戳是为了避免缓存
+var img_url = 'http://b.zol-img.com.cn/desk/bizhi/image/2/2560x1600/1365477614755.jpg?'+start_time
+// 创建对象
+var img = new Image()
+// 改变图片的src
+img.src = img_url
+// 定时执行获取宽高
+var check = function(){
+ // 只要任何一方大于0
+ // 表示已经服务器已经返回宽高
+    if (img.width>0 || img.height>0) {
+        var diff = new Date().getTime() - start_time;
+        document.getElementsById("debug_msg").innerHTML += '
+        from:check : width:'+img.width+',height:'+img.height+', time:'+diff+'ms';
+        clearInterval(set);
+    }
+}
+var set = setInterval(check,40)
+// 加载完成获取宽高
+img.onload = function(){
+    var diff = new Date().getTime() - start_time;
+    document.getElementsById("debug_msg").innerHTML += 'from:onload : width:'+img.width+',height:'+img.height+', time:'+diff+'ms';
+};
+</script>
+</head>
+
+<body id="photo">
+<!--页面头部-->
+            <div id="debug_msg"">
+
+            </div>
+<!--/页面头部-->
+
+
+<div class="section">
+    <!--/页面右边-->
+    <div class="right-260">
+        <div class="bg-wrap nobg">
+            <div class="sidebar-box">
+                <h4>人气排行</h4>
+                <ul class="txt-list">
+                
+                    <li>
+                        
+                        <label class="hot">1</label>
+                        
+                        <a href="/photo_show.aspx?id=56">软件功能介绍</a>
+                    </li>
+                
+                    <li>
+                        
+                        <label>2</label>
+                        
+                        <a href="/photo_show.aspx?id=57">软件安装图</a>
+                    </li>
+                
+                    <li>
+                        
+                        <label>3</label>
+                        
+                        <a href="/photo_show.aspx?id=55">软件背景</a>
+                    </li>
+                
+                    <li>
+                        
+                        <label>4</label>
+                        
+                        <a href="/photo_show.aspx?id=59">PREOP模式切换</a>
+                    </li>
+                
+                    <li>
+                        
+                        <label>5</label>
+                        
+                        <a href="/photo_show.aspx?id=58">I线机械手手动放松抱闸方法</a>
+                    </li>
+                
+                </ul>
+            </div>
+            
+            <div class="sidebar-box">
+                <h4>推荐图片</h4>
+                <ul class="side-img-list">
+                
+                    <li>
+                        <div class="img-box">
+                            <img src="http://localhost:83/upload/201708/16/201708162158353142.png" />
+                        </div>
+                        <div class="txt-box">
+                            <a href="/photo_show.aspx?id=56">软件功能介绍</a>
+                            <span>2017/8/16 22:00:09</span>
+                        </div>
+                    </li>
+                
+                    <li>
+                        <div class="img-box">
+                            <img src="http://localhost:83/upload/201708/16/201708162201129882.png" />
+                        </div>
+                        <div class="txt-box">
+                            <a href="/photo_show.aspx?id=57">软件安装图</a>
+                            <span>2017/8/16 22:03:05</span>
+                        </div>
+                    </li>
+                
+                    <li>
+                        <div class="img-box">
+                            <img src="http://localhost:83/upload/201708/16/201708162157196243.jpg" />
+                        </div>
+                        <div class="txt-box">
+                            <a href="/photo_show.aspx?id=55">软件背景</a>
+                            <span>2017/8/16 21:57:37</span>
+                        </div>
+                    </li>
+                
+                </ul>
+            </div>
+            
+        </div>
+    </div>
+    <!--/页面右边-->
+    
+    <!--页面左边-->
+    <div class="left-auto">
+        <div class="bg-wrap">
+
+
+            <div class="album-list">
+                <ul>
+                
+                    <li>
+                        <a name="gallery-img" href="javascript:;">
+                            <img data-original="http://localhost:83/upload/201708/16/201708162158353142.png" src="http://localhost:83/upload/201708/16/thumb_201708162158353142.png" />
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a name="gallery-img" href="javascript:;">
+                            <img data-original="http://localhost:83/upload/201708/16/201708162158353766.png" src="http://localhost:83/upload/201708/16/thumb_201708162158353766.png" />
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a name="gallery-img" href="javascript:;">
+                            <img data-original="http://localhost:83/upload/201708/16/201708162158354294.png" src="http://localhost:83/upload/201708/16/thumb_201708162158354294.png" />
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a name="gallery-img" href="javascript:;">
+                            <img data-original="http://localhost:83/upload/201708/16/201708162158354916.png" src="http://localhost:83/upload/201708/16/thumb_201708162158354916.png" />
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a name="gallery-img" href="javascript:;">
+                            <img data-original="http://localhost:83/upload/201708/16/201708162158355677.png" src="http://localhost:83/upload/201708/16/thumb_201708162158355677.png" />
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a name="gallery-img" href="javascript:;">
+                            <img data-original="http://localhost:83/upload/201708/16/201708162158356279.png" src="http://localhost:83/upload/201708/16/thumb_201708162158356279.png" />
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a name="gallery-img" href="javascript:;">
+                            <img data-original="http://localhost:83/upload/201708/16/201708162158356620.png" src="http://localhost:83/upload/201708/16/thumb_201708162158356620.png" />
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a name="gallery-img" href="javascript:;">
+                            <img data-original="http://localhost:83/upload/201708/16/201708162158357146.png" src="http://localhost:83/upload/201708/16/thumb_201708162158357146.png" />
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a name="gallery-img" href="javascript:;">
+                            <img data-original="http://localhost:83/upload/201708/16/201708162158357730.png" src="http://localhost:83/upload/201708/16/thumb_201708162158357730.png" />
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a name="gallery-img" href="javascript:;">
+                            <img data-original="http://localhost:83/upload/201708/16/201708162158358259.png" src="http://localhost:83/upload/201708/16/thumb_201708162158358259.png" />
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a name="gallery-img" href="javascript:;">
+                            <img data-original="http://localhost:83/upload/201708/16/201708162158358771.png" src="http://localhost:83/upload/201708/16/thumb_201708162158358771.png" />
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a name="gallery-img" href="javascript:;">
+                            <img data-original="http://localhost:83/upload/201708/16/201708162158359110.png" src="http://localhost:83/upload/201708/16/thumb_201708162158359110.png" />
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a name="gallery-img" href="javascript:;">
+                            <img data-original="http://localhost:83/upload/201708/16/201708162158359406.png" src="http://localhost:83/upload/201708/16/thumb_201708162158359406.png" />
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a name="gallery-img" href="javascript:;">
+                            <img data-original="http://localhost:83/upload/201708/16/201708162158360430.png" src="http://localhost:83/upload/201708/16/thumb_201708162158360430.png" />
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a name="gallery-img" href="javascript:;">
+                            <img data-original="http://localhost:83/upload/201708/16/201708162158360972.png" src="http://localhost:83/upload/201708/16/thumb_201708162158360972.png" />
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a name="gallery-img" href="javascript:;">
+                            <img data-original="http://localhost:83/upload/201708/16/201708162158361487.png" src="http://localhost:83/upload/201708/16/thumb_201708162158361487.png" />
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a name="gallery-img" href="javascript:;">
+                            <img data-original="http://localhost:83/upload/201708/16/201708162158363402.png" src="http://localhost:83/upload/201708/16/thumb_201708162158363402.png" />
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a name="gallery-img" href="javascript:;">
+                            <img data-original="http://localhost:83/upload/201708/16/201708162158368694.png" src="http://localhost:83/upload/201708/16/thumb_201708162158368694.png" />
+                        </a>
+                    </li>
+                
+                </ul>
+            </div>
+            
+            <div class="entry">
+                <p>软件功能介绍：</p><p><span style="color: black; font-family: 宋体; font-size: 20px; font-weight: bold;">软件主要功能</span></p><p>•设备故障管理&nbsp; •设备维修管理&nbsp; •设备资料管理&nbsp; •设备更新改造&nbsp; •设备备件管理&nbsp; •设备润滑管理&nbsp; •设备前期管理&nbsp; •设备资产管理&nbsp; •设备保养管理&nbsp; •系统设置管理</p><p><br/></p>
+            </div>
+            
+            <!--上下一条-->
+            <div class="next-box clearfix">
+                <p class="prev">上一篇：没有了</p>
+                <p class="next">下一篇：没有了</p>
+            </div>
+            <!--/上下一条-->
+            
+            <!--相关资讯-->
+            <div class="rel-box">
+                <h2 class="slide-tit">
+                    <span>相关图片</span>
+                </h2>
+                <ul class="rel-list">
+                
+                    <div class="nodata">暂无相关数据...</div>
+                
+                </ul>
+            </div>
+            <!--/相关资讯-->
+            
+            <!--网友评论-->
+            
+            <!--/网友评论-->
+            
+        </div>
+    </div>
+    <!--/页面左边-->
+</div>
+
+<!--页面底部-->
+<div class="footer">
+    <div class="section">
+        <div class="foot-nav">
+            <a href="/index.aspx">首页</a>
+            <strong>|</strong>
+            <a href="/news.aspx">新闻资讯</a>
+            <strong>|</strong>
+            <a href="/goods.aspx">购物商城</a>
+            <strong>|</strong>
+            <a href="/video.aspx">视频专区</a>
+            <strong>|</strong>
+            <a href="/down.aspx">图片分享</a>
+            <strong>|</strong>
+            <a href="/photo.aspx">资源下载</a>
+            <strong>|</strong>
+            <a href="/feedback.aspx">在线留言</a>
+            <strong>|</strong>
+            <a href="/link.aspx">友情链接</a>
+        </div>
+        <div class="foot-box">
+            <div class="copyright">
+                <p>版权所有  </p>
+                <p>公司地址： 联系电话：18507722569</p>
+                <p class="gray">Copyright © 2009-2017 dtcms.net Corporation,All Rights Reserved.</p>
+            </div>
+            <div class="service">
+                <p>周一至周日 9:00-24:00</p>
+                <a href="http://www.dtcms.net" target="_blank"><i class="iconfont icon-phone"></i>在线客服</a>
+            </div>
+        </div>
+    </div>
+</div>
+<!--/页面底部-->
+   
+
+    <div id="gallery" class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="pswp__bg"></div>
+
+        <div class="pswp__scroll-wrap">
+
+          <div class="pswp__container">
+			<div class="pswp__item"></div>
+			<div class="pswp__item"></div>
+			<div class="pswp__item"></div>
+          </div>
+
+          <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+				<div class="pswp__counter"></div>
+
+				<button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+				<button class="pswp__button pswp__button--share" title="Share"></button>
+
+				<button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+				<button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+				<div class="pswp__preloader">
+					<div class="pswp__preloader__icn">
+					  <div class="pswp__preloader__cut">
+					    <div class="pswp__preloader__donut"></div>
+					  </div>
+					</div>
+				</div>
+            </div>
+
+
+			<!-- <div class="pswp__loading-indicator"><div class="pswp__loading-indicator__line"></div></div> -->
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+	            <div class="pswp__share-tooltip">
+					<!-- <a href="#" class="pswp__share--facebook"></a>
+					<a href="#" class="pswp__share--twitter"></a>
+					<a href="#" class="pswp__share--pinterest"></a>
+					<a href="#" download class="pswp__share--download"></a> -->
+	            </div>
+	        </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)"></button>
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)"></button>
+            <div class="pswp__caption">
+              <div class="pswp__caption__center">
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+
+    </div>
+    
+  
+    <script>
+    (function() {
+
+		var initPhotoSwipeFromDOM = function(gallerySelector) {
+
+			var parseThumbnailElements = function(el) {
+			    //var thumbElements = el.childNodes,
+				var thumbElements =galleryElements,
+			        numNodes = thumbElements.length,
+			        items = [],
+			        el,
+			        childElements,
+			        thumbnailEl,
+			        size,
+			        item=[];
+
+			    for(var i = 0; i < numNodes; i++) {
+			        el = thumbElements[i];
+
+			        // include only element nodes 
+			        if(el.nodeType !== 1) {
+			          continue;
+			        }
+
+			        childElements = el.children;
+/*
+			        size = el.getAttribute('data-size').split('x');
+
+			        // create slide object
+			        item = {
+						src: el.getAttribute('href'),
+						w: parseInt(size[0], 10),
+						h: parseInt(size[1], 10),
+						author: el.getAttribute('data-author')
+			        };
+*/
+			        
+			        if(childElements.length > 0) {
+			          item.msrc = childElements[0].getAttribute('src'); // thumbnail url
+			          if(childElements.length > 1) {
+			              item.title = childElements[1].innerHTML; // caption (contents of figure)
+			          }
+					// create slide object  
+					// 图片地址
+					var img_url = childElements[0].getAttribute('data-original');
+					
+					// 创建对象
+					var img = new Image();
+					
+					// 改变图片的src
+					img.src = img_url;
+					var img_w=1600;
+					var img_h=1200;
+					// 判断是否有缓存
+					if(img.complete){
+						// 打印
+						//alert('from:complete : width:'+img.width+',height:'+img.height);
+						img_w=img.width;
+						img_h=img.height;
+					}else{
+						// 加载完成执行
+						img.onload = function(){
+							// 打印
+							//alert('from:onload : width:'+img.width+',height:'+img.height);
+							img_w=img.width;
+							img_h=img.height;
+						};
+					}
+					if(isNaN(img_w)){img_w=1600;}
+					if(isNaN(img_h)){img_w=1200;}
+			        item = {
+						src: img_url,
+						w:img_w,
+						h:img_h,
+						author:'mn321.net'
+			        };
+			        }
+					item.el = el; // save link to element for getThumbBoundsFn
+
+
+					var mediumSrc = el.getAttribute('data-med');
+		          	if(mediumSrc) {
+		            	size = el.getAttribute('data-med-size').split('x');
+		            	// "medium-sized" image
+		            	item.m = {
+		              		src: mediumSrc,
+		              		w: parseInt(size[0], 10),
+		              		h: parseInt(size[1], 10)
+		            	};
+		          	}
+		          	// original image
+		          	item.o = {
+		          		src: item.src,
+		          		w: item.w,
+		          		h: item.h
+		          	};
+
+			        items.push(item);
+			    }
+
+			    return items;
+			};
+
+			// find nearest parent element
+			var closest = function closest(el, fn) {
+			    return el && ( fn(el) ? el : closest(el.parentNode, fn) );
+			};
+
+			var onThumbnailsClick = function(e) {
+			    e = e || window.event;
+			    e.preventDefault ? e.preventDefault() : e.returnValue = false;
+
+			    var eTarget = e.target || e.srcElement;
+
+			    var clickedListItem = closest(eTarget, function(el) {
+			        return el.tagName === 'A';
+			    });
+
+			    if(!clickedListItem) {
+			        return;
+			    }
+
+			    var clickedGallery = clickedListItem.parentNode;
+
+			    //var childNodes = clickedListItem.parentNode.childNodes,
+				var childNodes=galleryElements,
+			        numChildNodes = childNodes.length,
+			        nodeIndex = 0,
+			        index;
+
+			    for (var i = 0; i < numChildNodes; i++) {
+			        if(childNodes[i].nodeType !== 1) { 
+			            continue; 
+			        }
+
+			        if(childNodes[i] === clickedListItem) {
+			            index = nodeIndex;
+			            break;
+			        }
+			        nodeIndex++;
+			    }
+
+			    if(index >= 0) {
+			        openPhotoSwipe( index, clickedGallery );
+			    }
+			    return false;
+			};
+
+			var photoswipeParseHash = function() {
+				var hash = window.location.hash.substring(1),
+			    params = {};
+
+			    if(hash.length < 5) { // pid=1
+			        return params;
+			    }
+
+			    var vars = hash.split('&');
+			    for (var i = 0; i < vars.length; i++) {
+			        if(!vars[i]) {
+			            continue;
+			        }
+			        var pair = vars[i].split('=');  
+			        if(pair.length < 2) {
+			            continue;
+			        }           
+			        params[pair[0]] = pair[1];
+			    }
+
+			    if(params.gid) {
+			    	params.gid = parseInt(params.gid, 10);
+			    }
+
+			    return params;
+			};
+
+			var openPhotoSwipe = function(index, galleryElement, disableAnimation, fromURL) {
+			    var pswpElement = document.querySelectorAll('.pswp')[0],
+			        gallery,
+			        options,
+			        items;
+
+				items = parseThumbnailElements(galleryElement);
+
+			    // define options (if needed)
+			    options = {
+
+			        galleryUID: galleryElement.getAttribute('data-pswp-uid'),
+
+			        getThumbBoundsFn: function(index) {
+			            // See Options->getThumbBoundsFn section of docs for more info
+			            var thumbnail = items[index].el.children[0],
+			                pageYScroll = window.pageYOffset || document.documentElement.scrollTop,
+			                rect = thumbnail.getBoundingClientRect(); 
+
+			            return {x:rect.left, y:rect.top + pageYScroll, w:rect.width};
+			        },
+
+			        addCaptionHTMLFn: function(item, captionEl, isFake) {
+						if(!item.title) {
+							captionEl.children[0].innerText = '';
+							return false;
+						}
+						captionEl.children[0].innerHTML = item.title +  '<br/><small>Photo: ' + item.author + '</small>';
+						return true;
+			        },
+					
+			    };
+
+
+			    if(fromURL) {
+			    	if(options.galleryPIDs) {
+			    		// parse real index when custom PIDs are used 
+			    		// https://photoswipe.com/documentation/faq.html#custom-pid-in-url
+			    		for(var j = 0; j < items.length; j++) {
+			    			if(items[j].pid == index) {
+			    				options.index = j;
+			    				break;
+			    			}
+			    		}
+				    } else {
+				    	options.index = parseInt(index, 10) - 1;
+				    }
+			    } else {
+			    	options.index = parseInt(index, 10);
+			    }
+
+			    // exit if index not found
+			    if( isNaN(options.index) ) {
+			    	return;
+			    }
+
+
+
+				var radios = document.getElementsByName('gallery-style');
+				for (var i = 0, length = radios.length; i < length; i++) {
+				    if (radios[i].checked) {
+				        if(radios[i].id == 'radio-all-controls') {
+
+				        } else if(radios[i].id == 'radio-minimal-black') {
+				        	options.mainClass = 'pswp--minimal--dark';
+					        options.barsSize = {top:0,bottom:0};
+							options.captionEl = false;
+							options.fullscreenEl = false;
+							options.shareEl = false;
+							options.bgOpacity = 0.85;
+							options.tapToClose = true;
+							options.tapToToggleControls = false;
+				        }
+				        break;
+				    }
+				}
+
+			    if(disableAnimation) {
+			        options.showAnimationDuration = 0;
+			    }
+
+			    // Pass data to PhotoSwipe and initialize it
+			    gallery = new PhotoSwipe( pswpElement, PhotoSwipeUI_Default, items, options);
+
+			    // see: http://photoswipe.com/documentation/responsive-images.html
+				var realViewportWidth,
+				    useLargeImages = false,
+				    firstResize = true,
+				    imageSrcWillChange;
+
+				gallery.listen('beforeResize', function() {
+
+					var dpiRatio = window.devicePixelRatio ? window.devicePixelRatio : 1;
+					dpiRatio = Math.min(dpiRatio, 2.5);
+				    realViewportWidth = gallery.viewportSize.x * dpiRatio;
+
+
+				    if(realViewportWidth >= 1200 || (!gallery.likelyTouchDevice && realViewportWidth > 800) || screen.width > 1200 ) {
+				    	if(!useLargeImages) {
+				    		useLargeImages = true;
+				        	imageSrcWillChange = true;
+				    	}
+				        
+				    } else {
+				    	if(useLargeImages) {
+				    		useLargeImages = false;
+				        	imageSrcWillChange = true;
+				    	}
+				    }
+
+				    if(imageSrcWillChange && !firstResize) {
+				        gallery.invalidateCurrItems();
+				    }
+
+				    if(firstResize) {
+				        firstResize = false;
+				    }
+
+				    imageSrcWillChange = false;
+
+				});
+
+				gallery.listen('gettingData', function(index, item) {
+				    if( useLargeImages ) {
+				        item.src = item.o.src;
+				        item.w = item.o.w;
+				        item.h = item.o.h;
+				    } else {
+				        item.src = item.m.src;
+				        item.w = item.m.w;
+				        item.h = item.m.h;
+				    }
+				});
+
+			    gallery.init();
+			};
+
+			// select all gallery elements
+			//var gallerylayer = document.querySelectorAll(gallerySelector);
+			galleryElements=document.getElementsByName('gallery-img');
+			for(var i = 0, l = galleryElements.length; i < l; i++) {
+				galleryElements[i].setAttribute('data-pswp-uid', i+1);
+				galleryElements[i].onclick = onThumbnailsClick;
+			}
+
+			// Parse URL and open gallery if it contains #&pid=3&gid=1
+			var hashData = photoswipeParseHash();
+			if(hashData.pid && hashData.gid) {
+				openPhotoSwipe( hashData.pid,  galleryElements[ hashData.gid - 1 ], true, true );
+			}
+		};
+
+		initPhotoSwipeFromDOM('.album-list');
+
+	})();
+
+	</script>
+</body>
+</html>

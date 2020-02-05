@@ -133,6 +133,7 @@
     // };
 
     // 重写img
+    /*
     myRenderer.image = function(href, title, text) {
       var out = '<p class="marked-img"><img class="x-photo" src="' + href + '" alt="' + text + '" style="max-width:100%;"';
       if (title) {
@@ -142,7 +143,18 @@
       out += '</p>'
       return out;
     };
-
+    */
+    myRenderer.image = function(href, title, text) {
+        var out = '<a href="' + href + '" data-size="1600x1200" data-med="' + href + '" data-med-size="1024x768" data-author="MN321.NET" class="demo-gallery" ';
+        out +='<img  src="' + href + '" alt="' + text + '" style="max-width:100%;"';
+        if (title) {
+          out += ' title="' + title + '"';
+        }
+        out += this.options.xhtml ? '/>' : '>';
+        out += '<figure>' + text + '</figure>';
+        out += '</a>'
+        return out;
+      };
     // 重写code
     myRenderer.code = function(code, lang, escaped) {
       if (this.options.highlight) {
