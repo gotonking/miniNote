@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 # @author xupingmao <578749341@qq.com>
 # @since 2019/10/05 20:23:43
-# @modified 2020/01/11 12:52:50
+# @modified 2020/02/02 15:17:01
 import xutils
 
 # cannot perform relative import
@@ -10,7 +10,7 @@ try:
 except ImportError:
     from tests import test_base
 
-from handlers.note.dao import delete_comment
+from handlers.note.dao import get_by_id
 
 app          = test_base.init()
 json_request = test_base.json_request
@@ -26,6 +26,16 @@ def create_note_for_test(type, name):
 
 def delete_note_for_test(name):
     json_request("/note/remove?name=%s" % name)
+
+def get_note_info(id):
+    return get_by_id(id)
+
+def delete_comment_for_test(id):
+    json_request("/note/comment/delete", method = "POST", data = dict(comment_id = id))
+
+def assert_json_request_success(test_case, url):
+    result = json_request(url)
+    test_case.assertEqual('success', result['code'])
 
 class TestMain(BaseTestCase):
 
@@ -50,6 +60,24 @@ class TestMain(BaseTestCase):
             data=dict(id=id, content="new-content"))
         json_request("/note/remove?id=" + str(id))
 
+    def test_create_page(self):
+        self.check_OK("/note/create")
+
+    def test_create_name_empty(self):
+        result = json_request("/note/create", method = "POST", data = dict(name = ""))
+        self.assertEqual(xutils.u('标题为空'), result['message'])
+
+    def test_create_name_exits(self):
+        create_note_for_test("md", "name-test")
+        result = json_request("/note/create", method = "POST", data = dict(name = "name-test"))
+        self.assertEqual(xutils.u('name-test 已存在'), result['message'])
+
+        delete_note_for_test("name-test")
+
+    def test_create_note_invalid_type(self):
+        result = json_request("/note/create", method = "POST", data = dict(type = "invalid", name = "invalid-test"))
+        self.assertEqual(xutils.u("无效的类型: invalid"), result["message"])
+
     def test_note_group_add_view(self):
         group = json_request("/note/add", method="POST",
             data = dict(name="xnote-unit-group", type="group"))
@@ -68,8 +96,16 @@ class TestMain(BaseTestCase):
     def test_note_timeline(self):
         self.check_200("/note/timeline")
         self.check_200("/note/timeline?type=public")
-        json_request("/note/api/timeline")
         json_request("/note/timeline/month?year=2018&month=1")
+
+    def test_timeline_api(self):
+        assert_json_request_success(self, "/note/api/timeline")
+        assert_json_request_success(self, "/note/api/timeline?type=public")
+        assert_json_request_success(self, "/note/api/timeline?type=sticky")
+        assert_json_request_success(self, "/note/api/timeline?type=removed")
+        assert_json_request_success(self, "/note/api/timeline?type=archived")
+        assert_json_request_success(self, "/note/api/timeline?type=all")
+        assert_json_request_success(self, "/note/api/timeline?type=search&key=xnote")
 
     def test_note_editor_md(self):
         json_request("/note/remove?name=xnote-md-test")
@@ -108,6 +144,7 @@ class TestMain(BaseTestCase):
         self.check_200("/note/recent_edit")
         self.check_200("/note/recent_created")
         self.check_200("/note/group/select")
+        self.check_200("/note/group/select?id=1234")
         self.check_200("/note/date?year=2019&month=1")
         self.check_200("/note/sticky")
 
@@ -157,7 +194,7 @@ class TestMain(BaseTestCase):
         # clean comments
         data = json_request("/note/comments?note_id=123")
         for comment in data:
-            delete_comment(comment['id'])
+            delete_comment_for_test(comment['id'])
 
         # test flow
         json_request("/note/comment/save", method="POST", data = dict(note_id = "123", content = "hello"))
@@ -169,6 +206,23 @@ class TestMain(BaseTestCase):
         self.check_OK("/note/management?parent_id=0")
         self.check_OK("/note/management?parent_id=123")
 
+    def test_gallery_view(self):
+        delete_note_for_test("gallery-test")
+        id = create_note_for_test("gallery", "gallery-test")
+
+        self.check_OK("/note/%s" % id)
+
+    def test_gallery_management(self):
+        delete_note_for_test("gallery-test")
+        id = create_note_for_test("gallery", "gallery-test")
+        self.check_OK("/note/management?parent_id=%s" % id)
+
+    def test_text_view(self):
+        delete_note_for_test("text-test")
+        id = create_note_for_test("text", "text-test")
+
+        self.check_OK("/note/%s" % id)
+
     def test_note_category(self):
         self.check_OK("/note/category")
 
@@ -176,6 +230,42 @@ class TestMain(BaseTestCase):
         delete_note_for_test("archive-test")
         id = create_note_for_test("group", "archive-test")
         self.check_OK("/note/archive?id=%s" % id)
+        note_info = get_note_info(id)
+        self.assertEqual(True, note_info.archived)
+
+        # 取消归档
+        self.check_OK("/note/unarchive?id=%s" % id)
+        note_info = get_note_info(id)
+        self.assertEqual(False, note_info.archived)
+
+    def test_move(self):
+        delete_note_for_test("move-test")
+        delete_note_for_test("move-group-test")
+
+        id = create_note_for_test("group", "move-test")
+        parent_id = create_note_for_test("group", "move-group-test")
+
+        json_request("/note/move?id=%s&parent_id=%s" % (id, parent_id))
+        group_info = get_note_info(parent_id)
+        self.assertEqual(1, group_info.size)
+
+    def test_rename(self):
+        delete_note_for_test("rename-test")
+        delete_note_for_test("newname-test")
+
+        id = create_note_for_test("md", "rename-test")
+        json_request("/note/rename", method = "POST", data = dict(id = id, name = "newname-test"))
+
+        note_info = get_note_info(id)
+        self.assertEqual("newname-test", note_info.name)
+
+    def test_stat(self):
+        self.check_OK("/note/stat")
+
+    def test_dict(self):
+        json_request("/dict/edit/name", method = "POST", data = dict(name = "name", value = u"姓名".encode("utf-8")))
+        self.check_OK("/note/dict")
+        self.check_OK("/dict/search?key=name")
 
     
 

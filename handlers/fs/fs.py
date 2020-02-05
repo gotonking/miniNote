@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-  
 # Created by xupingmao on 2017/03
-# @modified 2020/01/06 00:03:36
+# @modified 2020/01/30 16:38:29
 
 """xnote文件服务，主要功能:
 1. 静态文件服务器，生产模式使用强制缓存，开发模式使用协商缓存
@@ -142,7 +142,7 @@ class FileSystemHandler:
                 filelist = list_abs_dir(path)
         except OSError:
             return xtemplate.render("fs/fs.html", 
-                show_aside = True,
+                show_aside = False,
                 path = path,
                 filelist = [],
                 error = "No permission to list directory")
@@ -164,7 +164,8 @@ class FileSystemHandler:
         kw["token"]        = xauth.get_current_user().token
         kw["parent_path"]  = get_parent_path(path)
         kw["search_action"] = "/fs_find"
-        kw["show_aside"]   = True
+        kw["show_aside"]   = False
+        kw["show_hidden_files"] = xutils.get_argument("show_hidden_files", False, type = bool)
 
         mode = xutils.get_argument("mode", xconfig.FS_VIEW_MODE)
         kw["fs_mode"] = mode
@@ -182,6 +183,7 @@ class FileSystemHandler:
         raise web.seeother("/fs//")
 
     def read_range(self, path, http_range, blocksize):
+        xutils.trace("Download", "==> HTTP_RANGE %s" % http_range)
         range_list = http_range.split("bytes=")
         if len(range_list) == 2:
             # 包含完整的范围
@@ -237,6 +239,15 @@ class FileSystemHandler:
                 yield block
                 block = fp.read(blocksize)
 
+    def read_thumbnail(self, path, blocksize):
+        dirname = os.path.dirname(path)
+        fname   = os.path.basename(path)
+        thumbnail_path = os.path.join(dirname, ".thumbnails", fname)
+        if os.path.exists(thumbnail_path):
+            return self.read_all(thumbnail_path, blocksize)
+        else:
+            return self.read_all(path, blocksize)
+
     def read_file(self, path):
         # 强制缓存
         if not xconfig.DEBUG:
@@ -256,12 +267,13 @@ class FileSystemHandler:
         else:
             http_range = environ.get("HTTP_RANGE")
             blocksize = 64 * 1024;
-            # print_env()
 
             if http_range is not None:
-                xutils.trace("Download", "==> HTTP_RANGE %s" % http_range)
                 return self.read_range(path, http_range, blocksize)
             else:
+                mode = xutils.get_argument("mode", "")
+                if mode == "thumbnail":
+                    return self.read_thumbnail(path, blocksize)
                 return self.read_all(path, blocksize)            
 
     def handle_get(self, path):
@@ -320,40 +332,6 @@ class StaticFileHandler(FileSystemHandler):
             web.ctx.status = "404 Not Found"
             return "Not Readable %s" % path
         return self.handle_get(path)
-
-class BaseAddFileHandler:
-
-    @xauth.login_required("admin")
-    def POST(self):
-        path = xutils.get_argument("path", "")
-        filename = xutils.get_argument("filename", "")
-        if path == "":
-            return dict(code="fail", message="path is empty")
-        if xconfig.USE_URLENCODE:
-            filename = xutils.quote_unicode(filename)
-        newpath = os.path.join(path, filename)
-        try:
-            self.create_file(newpath)
-            return dict(code="success")
-        except Exception as e:
-            xutils.print_exc()
-            return dict(code="fail", message=str(e))
-
-    def create_file(self, path):
-        raise NotImplementedError()
-
-class AddDirHandler(BaseAddFileHandler):
-
-    def create_file(self, path):
-        os.makedirs(path)
-
-class AddFileHandler(BaseAddFileHandler):
-
-    def create_file(self, path):
-        if os.path.exists(path):
-            name = os.path.basename(path)
-            raise Exception("file [%s] exists" % name)
-        xutils.touch(path)
 
 class RemoveHandler:
 
@@ -522,7 +500,7 @@ class TextHandler:
 
     @xauth.login_required("admin")
     def GET(self):
-        return xtemplate.render("fs/template/txtreader.html")
+        return xtemplate.render("fs/page/txtreader.html")
 
 xutils.register_func("fs.process_file_list", process_file_list)
 
@@ -531,8 +509,6 @@ xurls = (
     r"/fs_edit",   EditHandler,
     r"/fs_view",   ViewHandler,
     r"/fs_text",   TextHandler,
-    r"/fs_api/add_dir", AddDirHandler,
-    r"/fs_api/add_file", AddFileHandler,
     r"/fs_api/remove", RemoveHandler,
     r"/fs_api/rename", RenameHandler,
     r"/fs_api/cut", CutHandler,

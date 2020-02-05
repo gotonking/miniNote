@@ -5,13 +5,13 @@ import copy
 import web
 import xconfig
 import xutils
-from xutils import ConfigParser, textutil, dbutil
+from xutils import ConfigParser, textutil, dbutil, fsutil
 from xconfig import Storage
 
 config = xconfig
 # 用户配置
 _users = None
-INVALID_NAMES = ["public", "deleted", "system"]
+INVALID_NAMES = fsutil.load_set_config("./config/user/invalid_names.list")
 
 def is_valid_username(name):
     """有效的用户名为字母+数字"""
@@ -73,6 +73,15 @@ def get_user_config(name):
             user.config = Storage()
         return user.config
     return None
+
+def update_user_config_dict(name, config_dict):
+    user = get_user(name)
+    if user is None:
+        return
+    config = get_user_config(user)
+    config.update(**config_dict)
+    user.config = config
+    update_user(name, user)
 
 def find_by_name(name):
     if name is None:

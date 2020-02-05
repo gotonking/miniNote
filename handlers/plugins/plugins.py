@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 # @author xupingmao <578749341@qq.com>
 # @since 2018/09/30 20:53:38
-# @modified 2019/12/15 17:56:55
+# @modified 2020/01/31 17:07:52
 from io import StringIO
 import xconfig
 import codecs
@@ -70,8 +70,10 @@ INNER_TOOLS = [
     # 其他工具
     inner_link("分屏模式", "/tools/multi_win"),
     inner_link("RunJS", "/tools/runjs"),
-    inner_link("文件服务", "/api/auth/passport"),
+	inner_link("文件服务", "/api/auth/passport"),
+    inner_link("摄像头", "/tools/camera"),
 ]
+
 
 def build_inner_tools():
     return copy.copy(INNER_TOOLS)
@@ -229,6 +231,8 @@ class PluginsListOldHandler:
             category = category,
             html_title = "插件",
             show_aside = xconfig.OPTION_STYLE == "aside",
+            search_placeholder = "搜索工具",
+            search_action = "/plugins_list",
             recent     = recent,
             plugins    = plugins)
 

@@ -35,146 +35,10 @@
     height: auto;
 }
 
-#markdown-input {
-    font-family: monospace;
-}
+    {% include note/component/view_css.html %}
 
-.small {
-    font-size: small;
-}
-
-.alert {
-    color: red;
-    background-color: #FFCCCC;
-    width: auto;
-}
-
-.x-code-block {
-    font-family: Consolas,monospace;
-    word-wrap: break-word;
-    border-style: solid;
-    border-radius: 3px;
-    border-width: 1px;
-    padding: 3px;
-    background-color: #ffffcc;
-}
-
-.bottom-fixed-pannel {
-    background-color: white; 
-    position: fixed; 
-    padding-bottom: 5px; 
-    padding-top:5px; 
-    bottom: 0px; 
-    z-index: 100
-}
-
-.pathlist {
-    background-color: #eee;
-    padding:3px;
-}
-
-.hover {
-    color: #AAA;
-}
-
-.hover:hover {
-    color: #000;
-}
-
-.no-border tr td {
-    border: none;
-}
-
-#uploadIframe {
-    border: none;
-    width: 100%;
-    height: 60px;
-}
-
-#markdown-output-div img {
-    max-height: 600px;
-}
-
-.red-border {
-    border-color: red;
-}
-
-/** 分组的标签 **/
-.group-tag {
-    border: 1px solid #ccc;
-    background-color: #69c;
-    padding: 5px;
-    margin: 5px;
-    display: block;
-    float: left;
-    line-height: 20px;
-    color: #fff;
-}
-
-{% init show_left = False %}
-{% if show_left %}
-    .x-left {
-        position: absolute;
-        left: 200px;
-        width: 200px;
-        bottom: 0px;
-        top: 0px;
-        overflow-y: auto;
-        border-right: 1px solid #ccc;
-    }
-
-    .x-left-title {
-        border-bottom: 1px solid #ccc;
-        padding: 5px;
-    }
-
-    .x-left-content {
-        padding: 5px;
-    }
-
-    .x-left-content li {
-        list-style: none;
-        line-height: 20px;
-        padding-bottom: 5px;
-    }
-
-    .x-body {
-        left: 400px;
-    }
 {% end %}
 
-</style>
-{% end %}
-
-{% block left_part %}
-    {% init groups = [] %}
-    {% init show_groups = False %}
-    {% init dir_type = "" %}
-    {% init tags = "" %}
-
-    {% if show_groups %}
-        <div class="x-left-title">
-            目录
-            {% if _has_login %}
-                <a class="float-right" href="/note/add?parent_id={{file.parent_id}}">{{T("Create")}}</a>
-            {% end %}
-        </div>
-        <div class="x-left-content">
-            {% for item in groups %}
-                <li>
-                    <i class="fa {{item.icon}}"></i>
-
-                    {%if item.priority>0%}
-                        <i class="fa fa-thumb-tack black"></i>
-                    {%end%}
-                    <a class="link" href="/note/{{item.id}}?dir_type={{dir_type}}&tags={{tags}}">
-                        {{item.name}}
-                    </a>
-                </li>
-            {% end %}
-        </div>
-    {% end %}
-{% end %}
 
 {% block body %}
     {% init file_type       = "md" %}
@@ -185,7 +49,7 @@
     {% init show_add_file   = False %}
     {% init show_add_group  = False %}
     {% init show_path_list  = True %}
-    {% init show_pagination = True %}
+    {% init show_pagination = False %}
     {% init show_comment    = True %}
     {% init error           = "" %}
 
@@ -199,7 +63,7 @@
         {% comment 如果有新类型的文件，继续增加file_type即可，后台实现不用变更 %}
         {% if file_type == "group" %}
             {% include note/note_list.html %}
-        {% elif file_type == "md" or file_type == "text" %}
+        {% elif file_type in ("md", "text") %}
             {% include note/editor/markdown.html %}
         {% elif file_type == "csv" %}
             {% include note/editor/csv_editor.html %}
@@ -219,9 +83,9 @@
 
     {# 分页 #}
     {% if show_pagination and "page" in globals() %}
-    <div class="card hide">
-        {% include mod_pagenation.html %}
-    </div>
+        <div class="card">
+            {% include mod_pagenation.html %}
+        </div>
     {% end %}
 
 <script type="text/javascript">
@@ -243,21 +107,22 @@ function rename(id, oldName) {
 }
 
 function remove(id, name, parentId) {
-    var confirmed = confirm("确定删除'" + name + "'?");
-    if (confirmed) {
-        $.post("/note/remove", {id:id}, function (resp) {
-            var code = resp.code;
-            if (code != "success") {
-                alert(resp.message);
-            } else {
-                if (parentId) {
-                    window.location.href = "/note/view?id="+parentId;
+    var confirmed = xnote.confirm("确定删除'" + name + "'?", function (confirmed) {
+        if (confirmed) {
+            $.post("/note/remove", {id:id}, function (resp) {
+                var code = resp.code;
+                if (code != "success") {
+                    alert(resp.message);
                 } else {
-                    window.location.href = "/";
+                    if (parentId) {
+                        window.location.href = "/note/" + parentId;
+                    } else {
+                        window.location.href = "/";
+                    }
                 }
-            }
-        })
-    }
+            })
+        }
+    });
 }
 
 $(function () {

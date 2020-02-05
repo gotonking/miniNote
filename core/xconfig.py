@@ -1,6 +1,6 @@
 # encoding=utf-8
 # @author xupingmao 
-# @modified 2020/01/12 22:47:54
+# @modified 2020/01/30 16:13:11
 
 '''xnote系统配置
 
@@ -69,11 +69,11 @@ PAGE_OPEN     = "self"
 PAGE_WIDTH    = "1150"
 USER_CSS      = None
 USER_JS       = None
-HOME_PATH     = "/note/index"
 
 # 插件相关
 LOAD_PLUGINS_ON_INIT = True
 PLUGINS_DICT         = {}
+PLUGIN_TEMPLATE      = ""
 
 # 菜单配置
 MENU_LIST    = []
@@ -169,6 +169,11 @@ note_history = None
 # 配置项
 _config = {}
 
+# 默认的用户配置
+DEFAULT_USER_CONFIG = {
+    "HOME_PATH": "/note/timeline"
+}
+
 def makedirs(dirname):
     if not os.path.exists(dirname):
         os.makedirs(dirname)
@@ -242,6 +247,7 @@ def init(path = DATA_DIR):
     global LOG_FILE
     global STORAGE_DIR
     global ETC_DIR
+    global PLUGIN_TEMPLATE
 
     DATA_PATH = os.path.abspath(path)
     DATA_DIR  = os.path.abspath(path)
@@ -289,6 +295,9 @@ def init(path = DATA_DIR):
 
     # 加载文件后缀配置
     load_file_type_config()
+
+    from xutils import fsutil
+    PLUGIN_TEMPLATE = fsutil.readfile("./config/template/plugin.tpl")
 
 def load_file_type_config0(fpath):
     from xutils import fsutil, textutil
@@ -513,18 +522,11 @@ def get_alias(name, default_value):
     """获取别名，用于扩展命令"""
     return _alias_dict.get(name, default_value)
 
-class MenuItem:
-
-    def __init__(self, name, link=None, role=None):
-        self.name = name
-        self.link = link
-        self.role = role
-        self.children = []
-
-    def is_visible(self):
-        import xauth
-        if self.role != None:
-            user_role = xauth.get_current_role()
-            return user_role == self.role
-        return True
-
+def get_user_config(user_name, config_key):
+    import xauth
+    config = xauth.get_user_config(user_name)
+    default_value = DEFAULT_USER_CONFIG.get(config_key)
+    if config is None:
+        return default_value
+    else:
+        return config.get(config_key, default_value)

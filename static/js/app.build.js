@@ -1,7 +1,7 @@
 
 // @author xupingmao
 // @since 2017/08/16
-// @modified 2019/03/27 00:36:12
+// @modified 2020/01/24 14:32:05
 
 /**
  * 获取请求参数
@@ -48,7 +48,7 @@ function getWindowWidth() {
         // For IE
         return Math.min(document.body.clientHeight, document.documentElement.clientHeight);
     }
-}
+};
 
 function getWindowHeight() {
     if (window.innerHeight) {
@@ -57,7 +57,7 @@ function getWindowHeight() {
         // For IE
         return Math.min(document.body.clientWidth, document.documentElement.clientWidth);
     }
-}
+};
 
 // 遍历对象
 function objForEach(obj, fn) {
@@ -71,7 +71,7 @@ function objForEach(obj, fn) {
             }
         }
     }
-}
+};
 
 // 遍历类数组
 function arrForEach(fakeArr, fn) {
@@ -86,7 +86,7 @@ function arrForEach(fakeArr, fn) {
             break;
         }
     }
-}
+};
 
 
 //////////////////////////////////////////////////////
@@ -463,7 +463,136 @@ Date.prototype.format = Date.prototype.format || function (format) {
         return sFormat("%2d:%2d:%2d", hour, minute, second);
     }
     return sFormat("%d-%2d-%2d %2d:%2d:%2d", year, month, day, hour, minute, second);
-}
+};
+
+
+(function(){
+
+    /**
+     * part of quarkjs
+     * 构造函数.
+     * @name EventDispatcher
+     * @class EventDispatcher类是可调度事件的类的基类，它允许显示列表上的任何对象都是一个事件目标。
+     */
+    var EventDispatcher = function()
+    {
+        //事件映射表，格式为：{type1:[listener1, listener2], type2:[listener3, listener4]}
+        this._eventMap = {};
+    };
+
+    /**
+     * 注册事件侦听器对象，以使侦听器能够接收事件通知。
+     */
+    EventDispatcher.prototype.addEventListener = function(type, listener)
+    {
+        var map = this._eventMap[type];
+        if(map == null) map = this._eventMap[type] = [];
+        
+        if(map.indexOf(listener) == -1)
+        {
+            map.push(listener);
+            return true;
+        }
+        return false;
+    };
+
+    /**
+     * 删除事件侦听器。
+     */
+    EventDispatcher.prototype.removeEventListener = function(type, listener)
+    {
+        if(arguments.length == 1) return this.removeEventListenerByType(type);
+
+        var map = this._eventMap[type];
+        if(map == null) return false;
+
+        for(var i = 0; i < map.length; i++)
+        {
+            var li = map[i];
+            if(li === listener)
+            {
+                map.splice(i, 1);
+                if(map.length == 0) delete this._eventMap[type];
+                return true;
+            }
+        }
+        return false;
+    };
+
+    /**
+     * 删除指定类型的所有事件侦听器。
+     */
+    EventDispatcher.prototype.removeEventListenerByType = function(type)
+    {
+        var map = this._eventMap[type];
+        if(map != null)
+        {
+            delete this._eventMap[type];
+            return true;
+        }
+        return false;
+    };
+
+    /**
+     * 删除所有事件侦听器。
+     */
+    EventDispatcher.prototype.removeAllEventListeners = function()
+    {   
+        this._eventMap = {};
+    };
+
+    /**
+     * 派发事件，调用事件侦听器。
+     */
+    EventDispatcher.prototype.dispatchEvent = function(event)
+    {
+        var map = this._eventMap[event.type];
+        if(map == null) return false;   
+        if(!event.target) event.target = this;
+        map = map.slice();
+
+        for(var i = 0; i < map.length; i++)
+        {
+            var listener = map[i];
+            if(typeof(listener) == "function")
+            {
+                listener.call(this, event);
+            }
+        }
+        return true;
+    };
+
+    /**
+     * 检查是否为指定事件类型注册了任何侦听器。
+     */
+    EventDispatcher.prototype.hasEventListener = function(type)
+    {
+        var map = this._eventMap[type];
+        return map != null && map.length > 0;
+    };
+
+    //添加若干的常用的快捷缩写方法
+    EventDispatcher.prototype.on = EventDispatcher.prototype.addEventListener;
+    EventDispatcher.prototype.un = EventDispatcher.prototype.removeEventListener;
+    EventDispatcher.prototype.fire = EventDispatcher.prototype.dispatchEvent;
+
+
+    // xnote事件驱动
+    if (window.xnote == undefined) {
+        window.xnote = {};
+    }
+
+    xnote._eventDispatcher = new EventDispatcher();
+    xnote.addEventListener = xnote.on = function (type, listener) {
+        return xnote._eventDispatcher.addEventListener(type, listener);
+    }
+
+    xnote.dispatchEvent = xnote.fire = function (type, target) {
+        var event = {type: type, target: target};
+        return xnote._eventDispatcher.dispatchEvent(event);
+    }
+    
+})();
 /**
  * xnote专用ui
  * 依赖库
@@ -471,221 +600,123 @@ Date.prototype.format = Date.prototype.format || function (format) {
  *   layer.js
  * @author xupingmao
  * @since 2017/10/21
- * @modified 2020/01/11 00:43:15
+ * @modified 2020/01/24 14:05:21
  */
-var XUI = function (window) {
-  // 处理select标签选中情况
-  function initSelect() {  
-    $("select").each(function (index, ele) {
-      var self = $(ele);
-      var children = self.children();
-      // 使用$.val() 会取到第一个select标签值
-      var value = self.attr("value");
-      for (var i = 0; i < children.length; i++) {
-        var child = children[i];
-        if (value == child.value) {
-          child.selected = "selected";
-        }
-      }
-    });
-  }
-
-  function initCheckbox() {
-    $("input[type=checkbox]").each(function (index, ele) {
-      var self = $(ele);
-      var value = self.attr("default-value");
-      if (value == "on") {
-        self.attr("checked", "checked");
-      }
-    })
-  }
-
-  function initRadio() {
-    $("input[type=radio]").each(function (index, ele) {
-      var self = $(ele);
-      var value = self.attr("default-value");
-      if (value == self.val()) {
-        self.attr("checked", "checked");
-      }
-    });
-  }
-
-  function initXRadio() {
-    $(".x-radio").each(function (index, element) {
-      var self = $(element);
-      var option = self.attr("data-option");
-      var value  = self.attr("data-value");
-      if (value == option) {
-        self.addClass("selected-link");
-      }
-    });
-  }
-
-  // 类似tab的超链接
-  function initTabLink() {
-    var hasActive = false;
-    $(".x-tab").each(function (index, ele) {
-      var link = $(ele).attr("href");
-      var fullpath = location.href;
-      
-      if (fullpath.indexOf(link) >= 0) {
-        $(ele).addClass("tab-link-active");
-        hasActive = true;
-      }
-    });
-    if (!hasActive) {
-      $(".x-tab-default").addClass("tab-link-active");
+var XUI = function(window) {
+    // 处理select标签选中情况
+    function initSelect() {
+        $("select").each(function(index, ele) {
+            var self = $(ele);
+            var children = self.children();
+            // 使用$.val() 会取到第一个select标签值
+            var value = self.attr("value");
+            for (var i = 0; i < children.length; i++) {
+                var child = children[i];
+                if (value == child.value) {
+                    child.selected = "selected";
+                }
+            }
+        });
     }
-  }
-  
 
-  // 点击跳转链接的按钮
-  $(".link-btn").click(function () {
-      var link = $(this).attr("x-href");
-      if (!link) {
-        link = $(this).attr("href");
-      }
-      var confirmMessage = $(this).attr("confirm-message");
-      if (confirmMessage) {
-        var check = confirm(confirmMessage);
-        if (check) {
-          window.location.href = link;
-        }
-      } else {
-        window.location.href = link;
-      }
-  })
-
-  // 点击prompt按钮
-  // <input type="button" class="prompt-btn" action="/rename?name=" message="重命名为" value="重命名">
-  $(".prompt-btn").click(function () {
-      var action = $(this).attr("action");
-      var message = $(this).attr("message");
-      var defaultValue = $(this).attr("default-value");
-      var message = prompt(message, defaultValue);
-      if (message != "" && message) {
-          $.get(action + encodeURIComponent(message), function () {
-              window.location.reload();
-          })
-      }
-  })
-
-  // 点击激活对话框的按钮
-  $(".dialog-btn").click(function () {
-    var dialogUrl = $(this).attr("dialog-url");
-    var dialogId = $(this).attr("dialog-id");
-    if (dialogUrl) {
-      // 通过新的HTML页面获取dialog
-      $.get(dialogUrl, function (respHtml) {
-        $(document.body).append(respHtml);
-        doModal(dialogId);
-        initDefaultValue();
-        // 重新绑定事件
-        $(".x-dialog-close, .x-dialog-cancel").unbind("click");
-        $(".x-dialog-close, .x-dialog-cancel").on("click", function () { onDialogHide(); });
-      })
+    function initCheckbox() {
+        $("input[type=checkbox]").each(function(index, ele) {
+            var self = $(ele);
+            var value = self.attr("default-value");
+            if (value == "on") {
+                self.attr("checked", "checked");
+            }
+        })
     }
-  });
 
-  /**
-   * 初始化弹层
-   */
-  function initDialog() {
-    // 初始化样式
-    $(".x-dialog-close").css({"background-color":"red", "float":"right"});
+    function initRadio() {
+        $("input[type=radio]").each(function(index, ele) {
+            var self = $(ele);
+            var value = self.attr("default-value");
+            if (value == self.val()) {
+                self.attr("checked", "checked");
+            }
+        });
+    }
 
-    $(".x-dialog").each(function (index, ele) {
-        var self = $(ele);
-        var width = window.innerWidth;
-        if (width < 600) {
-          dialogWidth = width - 40;
+    function initXRadio() {
+        $(".x-radio").each(function(index, element) {
+            var self = $(element);
+            var option = self.attr("data-option");
+            var value = self.attr("data-value");
+            if (value == option) {
+                self.addClass("selected-link");
+            }
+        });
+    }
+
+    // 类似tab的超链接
+    function initTabLink() {
+        var hasActive = false;
+        $(".x-tab").each(function(index, ele) {
+            var link = $(ele).attr("href");
+            var fullpath = location.href;
+
+            if (fullpath.indexOf(link) >= 0) {
+                $(ele).addClass("tab-link-active");
+                hasActive = true;
+            }
+        });
+        if (!hasActive) {
+            $(".x-tab-default").addClass("tab-link-active");
+        }
+    }
+
+    // 点击跳转链接的按钮
+    $(".link-btn").click(function() {
+        var link = $(this).attr("x-href");
+        if (!link) {
+            link = $(this).attr("href");
+        }
+        var confirmMessage = $(this).attr("confirm-message");
+        if (confirmMessage) {
+            var check = confirm(confirmMessage);
+            if (check) {
+                window.location.href = link;
+            }
         } else {
-          dialogWidth = 600;
+            window.location.href = link;
         }
-        var top = Math.max((getWindowHeight() - self.height()) / 2, 0);
-        var left = (width - dialogWidth) / 2;
-        self.css({"width":dialogWidth, "left": left}).css("top", top);
+    })
+
+    // 点击prompt按钮
+    // <input type="button" class="prompt-btn" action="/rename?name=" message="重命名为" value="重命名">
+    $(".prompt-btn").click(function() {
+        var action = $(this).attr("action");
+        var message = $(this).attr("message");
+        var defaultValue = $(this).attr("default-value");
+        var message = prompt(message, defaultValue);
+        if (message != "" && message) {
+            $.get(action + encodeURIComponent(message),
+            function() {
+                window.location.reload();
+            })
+        }
     });
 
-    $("body").css("overflow", "hidden");
-  }
-  
-  /**
-   * 隐藏弹层
-   */
-  function onDialogHide() {
-      $(".x-dialog").hide();
-      $(".x-dialog-background").hide();
-      $(".x-dialog-remote").remove();// 清空远程的dialog
-      $("body").css("overflow", "auto");
-  }
-  
-  $(".x-dialog-background").click(function () {
-      onDialogHide();
-  });
-  
-  $(".x-dialog-close, .x-dialog-cancel").click(function () {
-      onDialogHide();
-  });
-  
-  function doModal(id) {
-    initDialog();
-    $(".x-dialog-background").show();
-    $(".x-dialog-remote").show();
-    $("#"+id).show();
-  }
-
-  // 初始化表单控件的默认值
-  function initDefaultValue() {
-    initSelect();
-    initCheckbox();
-    initRadio();
-    initXRadio();
-    initTabLink();
-  }
-
-  window.showToast = function (message, time) {
-    if (!time) {
-      time = 1000;
+    // 初始化表单控件的默认值
+    function initDefaultValue(event) {
+        initSelect();
+        initCheckbox();
+        initRadio();
+        initXRadio();
+        initTabLink();
     }
-    var maxWidth = $(document.body).width();
-    var fontSize = 14;
-    var toast = $("<div>").css({
-      "margin": "0 auto",
-      "position": "fixed",
-      "left": 0,
-      "top": "24px",
-      "font-size": fontSize,
-      "padding": "14px 18px",
-      "border-radius": "4px",
-      "background": "#000",
-      "opacity": 0.7,
-      "color": "#fff",
-      "line-height": "22px",
-      "z-index": 1000
-    });
-    toast.text(message);
 
-    $(document.body).append(toast);
-    var width = toast.outerWidth();
-    var left = (maxWidth - width) / 2;
-    if (left < 0) {
-      left = 0;
-    }
-    toast.css("left", left);
-    setTimeout(function () {
-      toast.remove();
-    }, time);
-  }
-  
-  // 初始化
-  initDefaultValue();
+    // 初始化
+    initDefaultValue();
+    // 注册事件
+    xnote.addEventListener("init-default-value", initDefaultValue);
 };
 
-$(document).ready(function () {
+$(document).ready(function() {
     XUI(window);
-})
-
+});
 
 //layer相册层修改版, 调整了图片大小的处理
 layer.photos = function(options, loop, key){
@@ -909,9 +940,42 @@ layer.photos = function(options, loop, key){
     });
   });
 };
-/** 下拉组件
+/** 
+* 获取窗口的宽度
+*/
+function getWindowWidth() {
+    if (window.innerWidth) {
+        return window.innerWidth;
+    } else {
+        // For IE
+        return Math.min(document.body.clientHeight, document.documentElement.clientHeight);
+    }
+}
+
+function getWindowHeight() {
+    if (window.innerHeight) {
+        return window.innerHeight;
+    } else {
+        // For IE
+        return Math.min(document.body.clientWidth, document.documentElement.clientWidth);
+    }
+}
+
+/**
+ * 判断是否是PC设备，要求width>=800 && height>=600
+ */
+window.isPc = function() {
+    return getWindowWidth() >= 800;
+}
+
+// alias
+window.isDesktop = window.isPc;
+
+window.isMobile = function() {
+    return ! isPc();
+};/** 下拉组件
  * @since 2020/01/11
- * @modified 2020/01/11 00:48:25
+ * @modified 2020/01/22 00:29:27
  */
 
 $(function () {
@@ -919,7 +983,14 @@ $(function () {
 
     function toggleDropdown(e) {
         var target = e.target;
-        $(target).next(".dropdown-content").slideToggle("fast");
+        var dropdownContent = $(target).next(".dropdown-content");
+        dropdownContent.slideToggle("fast");
+
+        $(".dropdown-content").each(function (index, element) {
+            if (element != dropdownContent[0]) {
+                $(element).slideUp(0);
+            }
+        })
     }
 
     $(".dropdown").click(function (e) {
@@ -956,10 +1027,12 @@ $(function () {
           if (el == target) {
             imageIndex = index;
           }
-          var src = $(el).attr("src");
+
+          var src = $(el).attr("data-src");
           if (!src) {
-            src = $(el).attr("data-src");
+            src = $(el).attr("src");
           }
+          
           data.push({
             "alt": $(el).attr("alt"),
             "pid": 0,
@@ -981,22 +1054,354 @@ $(function () {
 });
 /** audio.js, part of xnote-ui 
  * @since 2020/01/05
- * @modified 2020/01/05 23:53:02
+ * @modified 2020/01/21 20:13:34
  **/
 
+$(function(e) {
 
-$(function (e) {
-
-  $("body").on("click", ".x-audio", function (e) {
-    var src = $(this).attr("data-src");
-    layer.open({
-      type: 2,
-      content: src,
-      shade: 0
+    $("body").on("click", ".x-audio",
+    function(e) {
+        var src = $(this).attr("data-src");
+        layer.open({
+            type: 2,
+            content: src,
+            shade: 0
+        });
     });
-  });
-  
+
 })/**
+ * xnote的公有方法
+ */
+var BASE_URL = "/static/lib/webuploader";
+
+if (window.xnote == undefined) {
+    window.xnote = {};
+}
+
+/** 创建上传器 **/
+window.xnote.createUploader = function(fileSelector, chunked) {
+    if (fileSelector == undefined) {
+        fileSelector = '#filePicker';
+    }
+
+    var upload_service;
+
+    // 默认分片
+    if (chunked == undefined) {
+        chunked = false;
+    }
+
+    if (chunked) {
+        upload_service = "/fs_upload/range";
+    } else {
+        // 不分片的上传服务
+        upload_service = "/fs_upload";
+    }
+
+    return WebUploader.create({
+        // 选完文件后，是否自动上传。
+        auto: true,
+        // swf文件路径
+        swf: BASE_URL + '/Uploader.swf',
+        // 文件接收服务端。
+        server: upload_service,
+        // 选择文件的按钮。可选。
+        // 内部根据当前运行是创建，可能是input元素，也可能是flash.
+        pick: fileSelector,
+        // 需要分片
+        chunked: chunked,
+        // 默认5M
+        // chunkSize: 1024 * 1024 * 5,
+        chunkSize: 1024 * 1024 * 5,
+        // 重试次数
+        chunkRetry: 10,
+        // 文件上传域的name
+        fileVal: "file",
+        // 不开启并发
+        threads: 1
+        // 默认压缩是开启的
+        // compress: {}
+    });
+};
+
+// 把blob对象转换成文件上传到服务器
+window.xnote.uploadBlob = function(blob, prefix, successFn, errorFn) {
+    var fd = new FormData();
+    fd.append("file", blob);
+    fd.append("prefix", prefix);
+    fd.append("name", "auto");
+    //创建XMLHttpRequest对象
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/fs_upload');
+    xhr.onload = function() {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                var data = JSON.parse(xhr.responseText);
+                if (successFn) {
+                    successFn(data);
+                } else {
+                    console.log(data);
+                }
+            } else {
+                console.error(xhr.statusText);
+            }
+        };
+    };
+    xhr.onerror = function(e) {
+        console.log(xhr.statusText);
+    }
+    xhr.send(fd);
+};
+
+window.xnote.requestUpload = function(fileSelector, chunked, successFn, errorFn) {
+    if (fileSelector == undefined) {
+        throw new Error("selector is undefined");
+    }
+
+    var loadingIndex = 0;
+    var uploader = window.xnote.createUploader(fileSelector, chunked);
+
+    // 当有文件添加进来的时候
+    uploader.on('fileQueued',
+    function(file) {
+        // 添加文件
+        console.log("file = " + file);
+    });
+
+    // 文件上传过程中创建进度条实时显示。
+    uploader.on('uploadProgress',
+    function(file, percentage) {
+        // 进度条
+    });
+
+    uploader.on('uploadBeforeSend',
+    function(object, data, headers) {
+        data.dirname = "auto";
+    })
+
+    // 文件上传成功，给item添加成功class, 用样式标记上传成功。
+    uploader.on('uploadSuccess',
+    function(file, resp) {
+        console.log("uploadSuccess", file, resp);
+
+        layer.close(loadingIndex);
+
+        successFn(resp);
+    });
+
+    // 文件上传失败，显示上传出错。
+    uploader.on('uploadError',
+    function(file) {
+        layer.alert('上传失败');
+        layer.close(loadingIndex);
+    });
+
+    // 完成上传完了，成功或者失败，先删除进度条。
+    uploader.on('uploadComplete',
+    function(file) {
+        console.log("uploadComplete", typeof(file), file);
+    });
+
+    // 触发上传文件操作
+    $(fileSelector).click();
+
+    // 选择文件完毕
+    $(fileSelector).on("change",
+    function(event) {
+        console.log(event);
+        var fileList = event.target.files; //获取文件对象 
+        if (fileList && fileList.length > 0) {
+            uploader.addFile(fileList);
+            loadingIndex = layer.load(2);
+        }
+        // 清空文件列表，不然下次上传会重复
+        event.target.files = [];
+    });
+};
+
+/** x-upload.js end **/
+if (window.xnote == undefined) {
+    window.xnote = {};
+}
+
+window.xnote.showDialog = function(title, html) {
+    if (isMobile()) {
+        var area = ['100%', '100%'];
+    } else {
+        var area = ['600px', '80%'];
+    }
+
+    return layer.open({
+        type: 1,
+        title: title,
+        shadeClose: true,
+        area: area,
+        content: html,
+        scrollbar: false
+    });
+}
+
+// 询问函数，原生prompt的替代方案
+xnote.prompt = function(title, defaultValue, callback) {
+    if (layer && layer.prompt) {
+        // 使用layer弹层
+        layer.prompt({
+            title: title,
+            value: defaultValue,
+            scrollbar: false,
+            area: ['400px', '300px']
+        },
+        function(value, index, element) {
+            callback(value);
+            layer.close(index);
+        })
+    } else {
+        var result = prompt(title, defaultValue);
+        callback(result);
+    }
+};
+
+// 确认函数
+xnote.confirm = function(message, callback) {
+    if (layer && layer.confirm) {
+        layer.confirm(message,
+        function(index) {
+            callback(true);
+            layer.close(index);
+        })
+    } else {
+        var result = confirm(message);
+        callback(result);
+    }
+};
+
+// 警告函数
+xnote.alert = function(message) {
+    if (layer && layer.alert) {
+        layer.alert(message);
+    } else {
+        alert(message);
+    }
+};
+
+window.xnote.toast = function(message, time) {
+    if (time == undefined) {
+        time = 1000;
+    }
+    var maxWidth = $(document.body).width();
+    var fontSize = 14;
+    var toast = $("<div>").css({
+        "margin": "0 auto",
+        "position": "fixed",
+        "left": 0,
+        "top": "24px",
+        "font-size": fontSize,
+        "padding": "14px 18px",
+        "border-radius": "4px",
+        "background": "#000",
+        "opacity": 0.7,
+        "color": "#fff",
+        "line-height": "22px",
+        "z-index": 1000
+    });
+    toast.text(message);
+
+    $(document.body).append(toast);
+    var width = toast.outerWidth();
+    var left = (maxWidth - width) / 2;
+    if (left < 0) {
+        left = 0;
+    }
+    toast.css("left", left);
+    setTimeout(function() {
+        toast.remove();
+    },
+    time);
+}
+
+// 兼容之前的方法
+window.showToast = window.xnote.toast;
+
+
+// 自定义的dialog
+$(function () {
+    // 点击激活对话框的按钮
+    $(".dialog-btn").click(function() {
+        var dialogUrl = $(this).attr("dialog-url");
+        var dialogId = $(this).attr("dialog-id");
+        if (dialogUrl) {
+            // 通过新的HTML页面获取dialog
+            $.get(dialogUrl, function(respHtml) {
+                $(document.body).append(respHtml);
+                doModal(dialogId);
+                // 重新绑定事件
+                xnote.fire("init-default-value");
+                $(".x-dialog-close, .x-dialog-cancel").unbind("click");
+                $(".x-dialog-close, .x-dialog-cancel").on("click",
+                function() {
+                    onDialogHide();
+                });
+            })
+        }
+    });
+
+
+    /**
+     * 初始化弹层
+     */
+    function initDialog() {
+        // 初始化样式
+        $(".x-dialog-close").css({
+            "background-color": "red",
+            "float": "right"
+        });
+
+        $(".x-dialog").each(function(index, ele) {
+            var self = $(ele);
+            var width = window.innerWidth;
+            if (width < 600) {
+                dialogWidth = width - 40;
+            } else {
+                dialogWidth = 600;
+            }
+            var top = Math.max((getWindowHeight() - self.height()) / 2, 0);
+            var left = (width - dialogWidth) / 2;
+            self.css({
+                "width": dialogWidth,
+                "left": left
+            }).css("top", top);
+        });
+
+        $("body").css("overflow", "hidden");
+    }
+
+    /**
+   * 隐藏弹层
+   */
+    function onDialogHide() {
+        $(".x-dialog").hide();
+        $(".x-dialog-background").hide();
+        $(".x-dialog-remote").remove(); // 清空远程的dialog
+        $("body").css("overflow", "auto");
+    }
+
+    $(".x-dialog-background").click(function() {
+        onDialogHide();
+    });
+
+    $(".x-dialog-close, .x-dialog-cancel").click(function() {
+        onDialogHide();
+    });
+
+    function doModal(id) {
+        initDialog();
+        $(".x-dialog-background").show();
+        $(".x-dialog-remote").show();
+        $("#" + id).show();
+    }
+
+});
+/**
  * 通用的操作函数
  */
 $(function() {
@@ -1263,19 +1668,6 @@ $(function () {
     }
 
     /**
-     * 判断是否是PC设备，要求width>=800 && height>=600
-     */
-    window.isPc = function () {
-      return getWindowWidth() >= 800 && getWindowHeight() >= 600;
-    }
-    // alias
-    window.isDesktop = window.isPc;
-
-    window.isMobile = function() {
-      return !isPc();
-    }
-
-    /**
      * 调整高度，通过
      * @param {string} selector 选择器
      * @param {number} bottom 距离窗口底部的距离
@@ -1365,128 +1757,3 @@ window.ContentDialog = {
     });
   }
 }
-
-/**
- * xnote的公有方法
- */
-var BASE_URL = "/static/lib/webuploader";
-
-// xnote全局对象
-var xnote = {
-  createUploader: function (selector, chunked) {
-    if (selector == undefined) {
-      selector = '#filePicker';
-    }
-
-    var upload_service;
-
-    // 默认分片
-    if (chunked == undefined) {
-      chunked = false;
-    }
-
-    if (chunked) {
-      upload_service = "/fs_upload/range";
-    } else {
-      // 不分片的上传服务
-      upload_service = "/fs_upload";
-    }
-    
-    return WebUploader.create({
-            // 选完文件后，是否自动上传。
-            auto: true,
-            // swf文件路径
-            swf: BASE_URL + '/Uploader.swf',
-            // 文件接收服务端。
-            server: upload_service,
-            // 选择文件的按钮。可选。
-            // 内部根据当前运行是创建，可能是input元素，也可能是flash.
-            pick: selector,
-            // 需要分片
-            chunked: chunked,
-            // 默认5M
-            // chunkSize: 1024 * 1024 * 5,
-            chunkSize: 1024 * 1024 * 5,
-            // 重试次数
-            chunkRetry: 10,
-            // 文件上传域的name
-            fileVal: "file",
-            // 不开启并发
-            threads: 1
-            // 默认压缩是开启的
-            // compress: {}
-        });
-  },
-
-  // 把blob对象转换成文件上传到服务器
-  uploadBlob: function (blob, prefix, successFn, errorFn) {
-    var fd = new FormData();
-    fd.append("file", blob);
-    fd.append("prefix", prefix);
-    fd.append("name", "auto");
-    //创建XMLHttpRequest对象
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST','/fs_upload');
-    xhr.onload = function () {
-        if ( xhr.readyState === 4 ) {
-            if ( xhr.status === 200 ) {
-                var data = JSON.parse( xhr.responseText );
-                if (successFn) {
-                  successFn(data);
-                } else {
-                  console.log(data);
-                }
-            } else {
-                console.error( xhr.statusText );
-            }
-        };
-    };
-    xhr.onerror = function (e) {
-        console.log( xhr.statusText );
-    }
-    xhr.send(fd);
-  },
-
-  // 询问函数，原生prompt的替代方案
-  prompt: function (title, defaultValue, callback) {
-    if (layer && layer.prompt) {
-      // 使用layer弹层
-      layer.prompt({
-        title: title,
-        value: defaultValue,
-        scrollbar: false,
-        area: ['400px', '300px']
-      }, function (value, index, element) {
-        callback(value);
-        layer.close(index);
-      })
-    } else {
-      var result = prompt(title, defaultValue);
-      callback(result);
-    }
-  },
-
-  // 确认函数
-  confirm: function (message, callback) {
-    if (layer && layer.confirm) {
-      layer.confirm(message, function (index) {
-        callback(true);
-        layer.close(index);
-      })
-    } else {
-      var result = confirm(message);
-      callback(result);
-    }
-  },
-
-  // 警告函数
-  alert: function (message) {
-    if (layer && layer.alert) {
-      layer.alert(message);
-    } else {
-      alert(message);
-    }
-  }
-}
-
-

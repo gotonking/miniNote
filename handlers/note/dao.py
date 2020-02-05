@@ -1,9 +1,23 @@
 # encoding=utf-8
 # Created by xupingmao on 2017/04/16
-# @modified 2020/01/12 20:54:52
+# @modified 2020/02/02 14:46:54
 
 """资料的DAO操作集合
 DAO层只做最基础的数据库交互，不做权限校验（空校验要做），业务状态检查之类的工作
+
+一些表的说明
+note_full:<note_id>              = 笔记的内容，包含一些属性（部分属性比如访问时间、访问次数不是实时更新的）
+note_index:<note_id>             = 笔记索引
+note_tiny:<user>:<note_id>       = 用户维度的笔记索引
+note_book:<user>:<note_id>       = 用户维度的笔记本(项目)索引
+token:<uuid>                     = 用于链接分享的令牌
+note_history:<note_id>:<version> = 笔记的历史版本
+note_comment:<note_id>:<timeseq> = 笔记的评论
+comment_index:<user>:<timeseq>   = 用户维度的评论索引
+search_history:<user>:<timeseq>  = 用户维度的搜索历史
+
+TODO:
+note_public:<note_id>            = 公开的笔记索引
 """
 import time
 import math
@@ -26,6 +40,8 @@ DB_PATH         = xconfig.DB_PATH
 NOTE_ICON_DICT = {
     "group"   : "fa-folder orange",
     "csv"     : "fa-table",
+    "table"   : "fa-table",
+    "post"    : "fa-file-word-o",
     "html"    : "fa-file-word-o",
     "gallery" : "fa-photo",
     "list"    : "fa-list"
@@ -195,6 +211,12 @@ def get_by_id_creator(id, creator, db=None):
         return note
     return None
 
+def get_by_token(token):
+    token_info = dbutil.get("token:%s" % token)
+    if token_info != None and token_info.type == "note":
+        return get_by_id(token_info.id)
+    return None
+
 def create_note(note_dict):
     content   = note_dict["content"]
     data      = note_dict["data"]
@@ -224,6 +246,12 @@ def create_note(note_dict):
     touch_note(parent_id)
 
     return note_id
+
+def create_token(type, id):
+    uuid = textutil.generate_uuid()
+    token_info = Storage(type = type, id = id)
+    dbutil.put("token:%s" % uuid, token_info)
+    return uuid
 
 def update_note_rank(note):
     mtime = note.mtime
@@ -258,13 +286,6 @@ def kv_put_note(note_id, note):
     # 更新索引
     update_index(note)
 
-    del_dict_key(note, "content")
-    del_dict_key(note, "data")
-    
-    if note.type == "group":
-        # 笔记本的索引
-        dbutil.put("notebook:%s:%020d" % (note.creator, int(note_id)), note)
-
 def touch_note(note_id):
     note = get_by_id(note_id)
     if note != None:
@@ -294,8 +315,11 @@ def update_index(note):
     # 更新用户索引
     dbutil.put("note_tiny:%s:%020d" % (note.creator, int(id)), note)
 
+    if note.type == "group":
+        dbutil.put("notebook:%s:%020d" % (note.creator, int(id)), note)
+
 def update_note(note_id, **kw):
-    # 移动笔记使用 move_note
+    # 这里只更新基本字段，移动笔记使用 move_note
     content   = kw.get('content')
     data      = kw.get('data')
     priority  = kw.get('priority')
@@ -306,6 +330,7 @@ def update_note(note_id, **kw):
     orderby   = kw.get("orderby")
     archived  = kw.get("archived")
     size      = kw.get("size")
+    token     = kw.get("token")
 
     old_parent_id = None
     new_parent_id = None
@@ -332,6 +357,8 @@ def update_note(note_id, **kw):
             note.archived = archived
         if size != None:
             note.size = size
+        if token != None:
+            note.token = token
 
         old_version  = note.version
         note.mtime   = xutils.format_time()
@@ -373,12 +400,12 @@ def update0(note):
     note.atime   = current_time
     kv_put_note(note.id, note)
 
-def get_by_name(name, db = None):
+def get_by_name(creator, name):
     def find_func(key, value):
         if value.is_deleted:
             return False
         return value.name == name
-    result = dbutil.prefix_list("note_tiny:", find_func, 0, 1)
+    result = dbutil.prefix_list("note_tiny:%s" % creator, find_func, 0, 1)
     if len(result) > 0:
         note = result[0]
         return get_by_id(note.id)
@@ -398,17 +425,20 @@ def delete_note(id):
     if note is None:
         return
 
-    # 复制到回收站
-    deleted_key = "note_deleted:%s:%s" % (note.creator, note.id)
-    dbutil.put(deleted_key, note)
+    if note.is_deleted != 0:
+        # 已经被删除了，执行物理删除
+        tiny_key = "note_tiny:%s:%s" % (note.creator, note.id)
+        full_key = "note_full:%s" % note.id
+        index_key = "note_index:%s" % note.id
+        dbutil.delete(tiny_key)
+        dbutil.delete(full_key)
+        dbutil.delete(index_key)
+        return
 
-    # 删除笔记
-    tiny_key = "note_tiny:%s:%s" % (note.creator, note.id)
-    full_key = "note_full:%s" % note.id
-    index_key = "note_index:%s" % note.id
-    dbutil.delete(tiny_key)
-    dbutil.delete(full_key)
-    dbutil.delete(index_key)
+    # 标记删除
+    note.mtime = xutils.format_datetime()
+    note.is_deleted = 1
+    kv_put_note(id, note)
 
     # 更新数量
     update_children_count(note.parent_id)
@@ -472,9 +502,9 @@ def list_group(creator = None, orderby = "mtime_desc", skip_archived = False):
             return False
         if skip_archived and value.parent_id != 0:
             return False
-        return value.type == "group" and value.creator == creator and value.is_deleted == 0
+        return value.type == "group" and value.is_deleted == 0
 
-    notes = dbutil.prefix_list("notebook:", list_group_func)
+    notes = dbutil.prefix_list("notebook:%s" % creator, list_group_func)
     sort_notes(notes, orderby)
     return notes
 
@@ -483,7 +513,7 @@ def list_root_group(creator = None, orderby = "name"):
     def list_root_group_func(key, value):
         return value.creator == creator and value.type == "group" and value.parent_id == 0 and value.is_deleted == 0
 
-    notes = dbutil.prefix_list("notebook:", list_root_group_func)
+    notes = dbutil.prefix_list("notebook:%s" % creator, list_root_group_func)
     sort_notes(notes, orderby)
     return notes
 
@@ -588,17 +618,11 @@ def list_by_date(field, creator, date):
 
 @xutils.timeit(name = "NoteDao.CountNote", logfile=True, logargs=True, logret=True)
 def count_by_creator(creator):
-    if xconfig.DB_ENGINE == "sqlite":
-        db    = xtables.get_file_table()
-        where = "is_deleted = 0 AND creator = $creator AND type != 'group'"
-        count = db.count(where, vars = dict(creator = xauth.get_current_name()))
-    else:
-        def count_func(key, value):
-            if value.is_deleted:
-                return False
-            return value.creator == creator and type != 'group'
-        count = dbutil.prefix_count("note_tiny:%s" % creator, count_func)
-    return count
+    def count_func(key, value):
+        if value.is_deleted:
+            return False
+        return value.creator == creator and type != 'group'
+    return dbutil.prefix_count("note_tiny:%s" % creator, count_func)
 
 def count_user_note(creator):
     return count_by_creator(creator)
@@ -620,11 +644,13 @@ def count_by_parent(creator, parent_id):
 
     return dbutil.prefix_count("note_tiny", list_note_func)
 
+@xutils.timeit(name = "NoteDao.CountDict", logfile = True, logargs = True, logret = True)
+def count_dict(user_name):
+    import xtables
+    return xtables.get_dict_table().count()
+
 @xutils.timeit(name = "NoteDao.FindPrev", logfile = True)
 def find_prev_note(note, user_name):
-    # where = "parent_id = $parent_id AND name < $name ORDER BY name DESC LIMIT 1"
-    # table = xtables.get_file_table()
-    # return table.select_first(where = where, vars = dict(name = note.name, parent_id = note.parent_id))
     parent_id = str(note.parent_id)
     note_name = note.name
     def find_prev_func(key, value):
@@ -641,9 +667,6 @@ def find_prev_note(note, user_name):
 
 @xutils.timeit(name = "NoteDao.FindNext", logfile = True)
 def find_next_note(note, user_name):
-    # where = "parent_id = $parent_id AND name > $name ORDER BY name ASC LIMIT 1"
-    # table = xtables.get_file_table()
-    # return table.select_first(where = where, vars = dict(name = note.name, parent_id = note.parent_id))
     parent_id = str(note.parent_id)
     note_name = note.name
     def find_next_func(key, value):
@@ -657,13 +680,6 @@ def find_next_note(note, user_name):
         return result[0]
     else:
         return None
-
-def update_priority(creator, id, value):
-    table = xtables.get_file_table()
-    rows = table.update(priority = value, where = dict(creator = creator, id = id))
-    cache_key = "[%s]note.recent" % creator
-    cacheutil.prefix_del(cache_key)
-    return rows > 0
 
 def add_history(id, version, note):
     if version is None:
@@ -732,7 +748,17 @@ def list_removed(creator, offset, limit):
     return notes
 
 def doc_filter_func(key, value):
-    return value.type not in ("csv", "gallery", "list", "table", "group") and value.is_deleted == 0
+    return value.type in ("md", "text", "html", "post") and value.is_deleted == 0
+
+def table_filter_func(key, value):
+    return value.type in ("csv", "table") and value.is_deleted == 0
+
+def get_filter_func(type, default_filter_func):
+    if type == "document" or type == "doc":
+        return doc_filter_func
+    if type in ("csv", "table"):
+        return table_filter_func
+    return default_filter_func
 
 def list_by_type(creator, type, offset, limit, orderby = "name", skip_archived = False):
     def list_func(key, value):
@@ -740,21 +766,16 @@ def list_by_type(creator, type, offset, limit, orderby = "name", skip_archived =
             return False
         return value.type == type and value.creator == creator and value.is_deleted == 0
 
-    if type == "document" or type == "doc":
-        list_func = doc_filter_func
-
-    notes = dbutil.prefix_list("note_tiny:%s" % creator, list_func, offset, limit, reverse = True)
+    filter_func = get_filter_func(type, list_func)
+    notes = dbutil.prefix_list("note_tiny:%s" % creator, filter_func, offset, limit, reverse = True)
     sort_notes(notes, orderby)
     return notes
 
 def count_by_type(creator, type):
-    def base_count_func(key, value):
+    def default_count_func(key, value):
         return value.type == type and value.creator == creator and value.is_deleted == 0
-    if type == "doc":
-        count_func = doc_filter_func
-    else:
-        count_func = base_count_func
-    return dbutil.prefix_count("note_tiny:%s" % creator, count_func)
+    filter_func = get_filter_func(type, default_count_func)
+    return dbutil.prefix_count("note_tiny:%s" % creator, filter_func)
 
 def list_sticky(creator, offset = 0, limit = 1000):
     def list_func(key, value):
@@ -882,8 +903,10 @@ def refresh_note_stat(user_name):
     stat.doc_count     = count_by_type(user_name, "doc")
     stat.gallery_count = count_by_type(user_name, "gallery")
     stat.list_count    = count_by_type(user_name, "list")
-    stat.table_count   = count_by_type(user_name, "csv")
+    stat.table_count   = count_by_type(user_name, "table")
     stat.sticky_count  = count_sticky(user_name)
+    stat.removed_count = count_removed(user_name)
+    stat.dict_count    = count_dict(user_name)
 
     dbutil.put("user_stat:%s:note" % user_name, stat)
     return stat
@@ -904,11 +927,12 @@ xutils.register_func("note.visit",  visit_note)
 xutils.register_func("note.delete", delete_note)
 xutils.register_func("note.touch",  touch_note)
 xutils.register_func("note.update_tags", update_tags)
-xutils.register_func("note.update_priority", update_priority)
+xutils.register_func("note.create_token", create_token)
 
 # query functions
 xutils.register_func("note.get_root", get_root)
 xutils.register_func("note.get_by_id", get_by_id)
+xutils.register_func("note.get_by_token", get_by_token)
 xutils.register_func("note.get_by_id_creator", get_by_id_creator)
 xutils.register_func("note.get_by_name", get_by_name)
 xutils.register_func("note.get_tags", get_tags)

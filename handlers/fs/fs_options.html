@@ -1,130 +1,6 @@
 {% init error = "" %}
 
-<style type="text/css">
-    .fs-image {
-        width: 180px;
-    }
-    .fs-path {
-        padding: 5px;
-        background-color: #eee;
-    }
-
-    .file-list {
-        display: block;
-        float: left;
-        width: 100%;
-        overflow: auto;
-    }
-
-    .checkboxTd {
-        width: 20px;
-        padding-left: 0px;
-    }
-        
-    /* 上传文件样式 */
-    .progress {
-        background-color: #f90;
-        color: #fff;
-        height: 20px;
-        display: none;
-        margin-left: 5px;
-        border-width: 3px;
-    }
-    .progress span {
-        display: block;
-        background-color: #f90;
-        color: #fff;
-        height: 100%;
-    }
-    
-    .finished-tag {
-        color: #fff;
-        background-color: green;
-        border-width: 3px;
-        border-radius: 3px;
-        margin-left: 5px;
-    }
-
-    #dropArea {
-        float: left;
-        width: 100%;
-        height: 80px;
-        line-height: 80px;
-        border: 3px dashed silver;
-        text-align: center;
-        font-size: 36px;
-        color: #d3d3d3;
-        cursor: pointer;
-    }
-
-    tr:hover td {
-        background: none;
-    }
-
-    tr:hover {
-        background-color: #eee;
-    }
-
-    .cmd-input {
-        width: 100%;
-        max-width: 700px;
-        background-color: rgb(230, 230, 255);
-        border-width: 1px;
-        border-style: solid;
-        border-color: black;
-        font-family: monospace;
-        font-size: 16px;
-        display: none;
-    }
-
-    #uploadFileArea {
-        display: none;
-    }
-
-    .size-td {
-        width: 100px;
-    }
-
-    .options-td {
-        width: 25%;
-        text-align: right;
-    }
-
-    {% if not xconfig.DEV_MODE %}
-        .advanced-opt {
-            display: none;
-        }
-    {% end %}
-
-    #controlArea {
-        margin-bottom: 5px;
-    }
-
-    #result {
-        border: 1px solid #ccc;
-        padding: 4px;
-        background-color: #eee;
-        margin: 0px;
-        border-top: none;
-        font-family: consolas, monospace;
-    }
-
-    .panel-title {
-        width: 100%;
-        border: 1px solid #ccc;
-        padding-left: 5px;
-        margin-top: 5px;
-    }
-
-    .plugin {
-        margin-top: 5px;
-    }
-
-    .nav-path {
-        padding: 5px;
-        background-color: #eee;
-    }
-</style>
+{% include fs/component/options-css.html %}
 
 <input id="currentPath" type="hidden" value="{{path}}"/>
 <input id="currentError" type="hidden" value="{{error}}"/>
@@ -137,13 +13,20 @@
         
         <!-- 导入文件 -->
         <input type="button" class="btn" value="上传" id="uploadFileBtn" >
-        <input type="button" class="btn" value="新建文件" id="addFile"/>
-        <input type="button" class="btn" value="新建文件夹" id="addDirectory"/>
+        <div class="dropdown">
+            <span class="dropdown-btn link btn">新建▾</span>
+            <div class="dropdown-content">
+                <a class="dropdown-option" id="addFile">新建文件</a>
+                <a class="dropdown-option" id="addDirectory">新建文件夹</a>
+                <a class="dropdown-option" id="addPluginFile">新建插件</a>
+            </div>
+        </div>
 
         <!-- 管理文件 -->
         <input type="button" class="btn desktop-only-inline" value="删除" id="deleteBtn"/>
         <input type="button" class="btn desktop-only-inline" value="重命名" id="renameBtn" message="重命名为">
         <input type="button" class="btn desktop-only-inline" value="剪切" id="cutBtn" message="剪切"/>
+        <input type="button" class="btn desktop-only-inline" value="剪切板" id="clipboardBtn"/>
 
         <!-- 视图选项 -->
         <div class="dropdown">
@@ -153,16 +36,22 @@
                 <a class="dropdown-option" href="/fs/{{path}}?mode=grid">网格视图</a>
                 <a class="dropdown-option" href="javascript:openByNative()">本地浏览</a>
                 <a class="dropdown-option" href="javascript:openTerminal()">打开终端</a>
+                <a class="dropdown-option" href="javascript:openFileOption(this)" data-path="{{path}}">命令窗口</a>
+            </div>
+        </div>
+
+        <div class="dropdown">
+            <span class="dropdown-btn link btn">更多▾</span>
+            <div class="dropdown-content">
+                <a class="dropdown-option" href="/code/search?path={{xutils.quote(path)}}&recursive=on">高级搜索</a>
+                <a class="dropdown-option" href="/code/lines?path={{xutils.quote(path)}}&recursive=on">代码统计</a>
+                <a class="dropdown-option" href="/fs/{{path}}?show_hidden_files=true">显示隐藏文件</a>
             </div>
         </div>
     </div>
-    
-    <div class="float-right">
-        <input type="button" class="link-btn desktop-only-inline" 
-            href="/code/search?path={{xutils.quote(path)}}&recursive=on" value="高级搜索"/>
-        <input type="button" data-path="{{path}}" onclick="openFileOption(this)" value="更多"/>
-    </div>
 </div>
+
+{% include fs/component/clipboard-dialog.html %}
 
 <script type="text/javascript">
 $(function () {
@@ -220,15 +109,7 @@ $(function () {
         showToast(message, 3000);
     }
 
-    function createFile(type) {
-        var promptMessage = "新建文件";
-        var url = "/fs_api/add_file";
-
-        if (type == "directory") {
-            promptMessage = "新建文件夹";
-            url = "/fs_api/add_dir";
-        }
-        
+    function createFile(promptMessage, url) {
         xnote.prompt(promptMessage, "", function (fileName) {
             if (fileName && fileName != "") {
                 $.post(url, {path: globalPath, filename: fileName}, function (respText) {
@@ -249,11 +130,15 @@ $(function () {
     }
 
     $("#addDirectory").on("click", function (target) {
-        createFile("directory");
+        createFile("新建文件夹", "/fs_api/add_dir");
     });
 
     $("#addFile").click(function () {
-        createFile("file");
+        createFile("新建文件", "/fs_api/add_file");
+    });
+
+    $("#addPluginFile").click(function(event) {
+        createFile("新建插件", "/fs_api/add_plugin");
     });
 
     $(".native-opener").on("click", function () {
@@ -381,56 +266,6 @@ $(function () {
         }
     });
 
-    $(".paste-link").on("click", function (e) {
-        var target = e.target;
-        var dataPath = $(target).attr("data-path");
-        // alert("move from " + dataPath + " to " + globalPath);
-        var data = {dirname: globalPath, old_path: dataPath};
-        $.post("/fs_api/paste", data, function (resp) {
-            if (resp.code != "success") {
-                alert(resp.message);
-            } else {
-                window.location.reload();
-            }
-        }).fail(function () {
-            // 
-        });
-    });
-
-    $(".paste-all-link").click(function () {
-        var failed = 0;
-        var rest = $(".paste-link").length;
-        $(".paste-link").each(function (index, target) {
-            var dataPath = $(target).attr("data-path");
-            // alert("move from " + dataPath + " to " + globalPath);
-            var data = {dirname: globalPath, old_path: dataPath};
-            $.post("/fs_api/paste", data, function (resp) {
-                if (resp.code != "success") {
-                    // alert(resp.message);
-                    // failed += 1
-                    showErrorMessage("failed to paste " + dataPath);
-                } 
-                rest -= 1;
-                if (rest === 0) {
-                    showMessage("success", "paste done!");
-                    setTimeout(function () {
-                        window.location.reload();
-                    }, 500);
-                }
-            }).fail(function (err) {
-                console.error(err);
-            });
-        });
-    })
-
-    $(".clear-clip-link").click(function(event) {
-        /* 清空剪切板 */
-        $.post("/fs_api/clear_clip", function (resp) {
-            console.log(resp);
-            window.location.reload();
-        });
-    });
-
     $("#showMoreOptsBtn").click(function (event) {
         $(".advanced-opt").toggle(200);
     });
@@ -452,6 +287,10 @@ $(function () {
         }
         toggle += 1;
         $(this).attr("toggle", toggle);
+    });
+
+    $("#clipboardBtn").click(function () {
+        showClipboardDialog();
     });
 
     // do not adjust height in mobile

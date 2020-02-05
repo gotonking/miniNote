@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @author xupingmao
 # @since 2017/02/19
-# @modified 2019/11/30 19:06:03
+# @modified 2020/01/29 14:07:12
 import web
 import time
 import os
@@ -26,7 +26,7 @@ except ImportError as e:
     psutil = None
 
 INIT_SCRIPT_URL = "/code/edit?type=script&path=" + str(xconfig.INIT_SCRIPT)
-USER_CONFIG_KEY_SET = set(["TODO_MODE", "SIMPLE_MODE"])
+USER_CONFIG_KEY_SET = set(["TODO_MODE", "SIMPLE_MODE", "HOME_PATH"])
 
 def get_xnote_version():
     try:
@@ -266,8 +266,7 @@ def on_reload(ctx = None):
         'PAGE_OPEN', 'RECENT_SEARCH_LIMIT', 
         "PAGE_SIZE", "RECENT_SIZE",
         "RECORD_LOCATION", "TRASH_EXPIRE",
-        "PAGE_WIDTH", "FS_VIEW_MODE",
-        "HOME_PATH"
+        "PAGE_WIDTH", "FS_VIEW_MODE"
     )
     for key in keys:
         value = cacheutil.hget('sys.config', key)

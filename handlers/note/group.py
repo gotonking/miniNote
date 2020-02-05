@@ -1,6 +1,6 @@
 # encoding=utf-8
 # @since 2016/12
-# @modified 2020/01/12 20:19:13
+# @modified 2020/02/04 23:20:49
 import math
 import time
 import web
@@ -66,6 +66,16 @@ def type_node_path(name, url):
     parent = PathNode(TYPES_NAME, "/note/types")
     return [parent, GroupLink(T(name), url)]
 
+class BaseTimelineHandler:
+
+    @xauth.login_required()
+    def GET(self):
+        return xtemplate.render("note/timeline.html", 
+            title = T(self.title), 
+            type = self.note_type,
+            search_action = "/note/timeline",
+            search_placeholder = "搜索笔记")
+
 class DefaultListHandler:
 
     @xauth.login_required()
@@ -80,7 +90,7 @@ class DefaultListHandler:
 
         return xtemplate.render(VIEW_TPL,
             file_type  = "group",
-            back_url   = xconfig.HOME_PATH,
+            back_url   = xconfig.get_user_config(user_name, "HOME_PATH"),
             pathlist   = [parent, Storage(name="默认分类", type="group", url="/note/default")],
             files      = files,
             file       = Storage(id = 1, name="默认分类", type="group", parent_id = 0),
@@ -102,7 +112,7 @@ class GroupListHandler:
         normal_books = []
 
         msg_stat  = MSG_DAO.get_message_stat(user_name)
-        note_link = NoteLink("任务", "/message?tag=task", "fa-calendar-check-o", size = msg_stat.task_count)
+        note_link = NoteLink("待办任务", "/message?tag=task", "fa-calendar-check-o", size = msg_stat.task_count)
         fixed_books.append(note_link)
 
         # 默认分组处理
@@ -115,31 +125,27 @@ class GroupListHandler:
             file = root, 
             pathlist = [root],
             show_path_list = True,
-            show_cdate = True,
+            show_size = True,
             files = files)
 
 def load_note_tools(user_name):
     msg_stat  = MSG_DAO.get_message_stat(user_name)
     note_stat = NOTE_DAO.get_note_stat(user_name)
-    public_count = NOTE_DAO.count_public()
-    removed_count = NOTE_DAO.count_removed(user_name)
 
     return [
-        NoteLink("公共笔记", "/note/public", "fa-folder", size = public_count),
         NoteLink("任务", "/message?tag=task", "fa-calendar-check-o", size = msg_stat.task_count),
+        NoteLink("置顶", "/note/sticky", "fa-thumb-tack", size = note_stat.sticky_count),
         NoteLink("话题", "/search/rules", "fa-search", size = msg_stat.key_count),
         NoteLink("记事", "/message?tag=log", "fa-sticky-note", size = msg_stat.log_count),
-        NoteLink("置顶", "/note/sticky", "fa-thumb-tack", size = note_stat.sticky_count),
-        NoteLink("分组", "/note/timeline?type=group", "fa-folder", size = note_stat.group_count),
-        # NoteLink("标签", "/note/taglist", "fa-tags"),
+        NoteLink("项目", "/note/timeline", "fa-folder", size = note_stat.group_count),
         NoteLink("文档", "/note/document", "fa-file-text", size = note_stat.doc_count),
         NoteLink("相册", "/note/gallery", "fa-image", size = note_stat.gallery_count),
         NoteLink("清单", "/note/list", "fa-list", size = note_stat.list_count),
         NoteLink("表格", "/note/table", "fa-table", size = note_stat.table_count),
-        # NoteLink("词典", "/note/dict",  "fa-dict"),
+        NoteLink("词典", "/note/dict",  "icon-dict", size = note_stat.dict_count),
         # NoteLink("通讯录", "/note/addressbook", "fa-address-book"),
         # NoteLink("富文本", "/note/html", "fa-file-word-o"),
-        NoteLink("回收站", "/note/removed", "fa-trash", size = removed_count),
+        NoteLink("回收站", "/note/removed", "fa-trash", size = note_stat.removed_count),
         # NoteLink("导入笔记", "/note/html_importer", "fa-cube"),
         NoteLink("按月查看", "/note/date", "fa-cube"),
         NoteLink("数据统计", "/note/stat", "fa-bar-chart"),
@@ -147,14 +153,14 @@ def load_note_tools(user_name):
     ]
 
 def load_category(user_name, include_system = False):
-    data = NOTE_DAO.list_group(user_name, orderby = "name")
+    data = NOTE_DAO.list_group(user_name, orderby = "mtime_desc")
     sticky_groups = list(filter(lambda x: x.priority != None and x.priority > 0, data))
     archived_groups = list(filter(lambda x: x.archived == True, data))
     normal_groups = list(filter(lambda x: x not in sticky_groups and x not in archived_groups, data))
     groups_tuple = [
-        ("置顶", sticky_groups),
-        ("分组", normal_groups),
-        ("已归档", archived_groups)
+        ("置顶项目", sticky_groups),
+        ("普通项目", normal_groups),
+        ("归档项目", archived_groups)
     ]
 
     if include_system:
@@ -190,9 +196,10 @@ class GroupSelectHandler:
         filetype = xutils.get_argument("filetype", "")
         groups_tuple = load_category(xauth.current_name())
         web.header("Content-Type", "text/html; charset=utf-8")
-        files = NOTE_DAO.list_root_group(user_name)
-        return xtemplate.render("note/template/group_select.html", 
+        files = NOTE_DAO.list_group(user_name)
+        return xtemplate.render("note/component/group_select.html", 
             id = id, 
+            groups_tuple = groups_tuple,
             callback = callback,
             files = files)
 
@@ -205,13 +212,10 @@ class CategoryHandler:
             id=id, groups_tuple = groups_tuple)
 
 
-class RemovedHandler:
+class RemovedHandler(BaseTimelineHandler):
 
-    @xauth.login_required()
-    def GET(self):
-        return xtemplate.render("note/tools/timeline.html", 
-            title = T("回收站"), 
-            type = "removed")
+    title = T("回收站")
+    note_type = "removed"
 
     @xauth.login_required()
     def GET_old(self):
@@ -265,13 +269,6 @@ class BaseListHandler:
             page_max  = math.ceil(amount / xconfig.PAGE_SIZE),
             page_url  = "/note/%s?page=" % self.note_type)
 
-class BaseTimelineHandler:
-
-    @xauth.login_required()
-    def GET(self):
-        return xtemplate.render("note/tools/timeline.html", 
-            title = T(self.title), 
-            type = self.note_type)
 
 class GalleryListHandler(BaseTimelineHandler):
 
@@ -299,30 +296,19 @@ class HtmlListHandler(BaseListHandler):
         self.title = "富文本"
 
 class MarkdownListHandler(BaseTimelineHandler):
+    note_type = "md"
+    title     = "Markdown"
 
-    def __init__(self):
-        self.note_type = "md"
-        self.title = "Markdown"
+class DocumentListHandler(BaseTimelineHandler):
+    note_type = "document"
+    title     = T("文档")
 
-class DocumentListHandler:
-
-    @xauth.login_required()
-    def GET(self):
-        return xtemplate.render("note/tools/timeline.html", 
-            title = T("文档"), 
-            type = "document")
-
-class ListHandler(BaseListHandler):
+class ListHandler(BaseTimelineHandler):
 
     def __init__(self):
         self.note_type = "list"
         self.title = "清单"
 
-    @xauth.login_required()
-    def GET(self):
-        return xtemplate.render("note/tools/timeline.html", 
-            title = T("清单"), 
-            type = "list")
 
 class TextHandler(BaseListHandler):
 
@@ -356,7 +342,10 @@ class NoteIndexHandler:
             files     = files,
             show_path_list   = show_path_list,
             show_parent_link = show_parent_link,
-            show_next  = True)
+            show_next  = True,
+            show_size  = True,
+            search_action = "/note/timeline",
+            search_placeholder = "搜索笔记")
 
 class ToolListHandler(NoteIndexHandler):
     pass
@@ -422,14 +411,11 @@ class RecentHandler:
             page_max    = math.ceil(count/xconfig.PAGE_SIZE), 
             page_url    ="/note/recent_%s?page=" % orderby)
 
-class PublicGroupHandler:
+class PublicGroupHandlerOld(BaseTimelineHandler):
+    title = T("公共笔记"), 
+    note_type = "public"
 
-    def GET(self):
-        return xtemplate.render("note/tools/timeline.html", 
-            title = T("公共笔记"), 
-            show_create = False,
-            type = "public")
-
+    def GET_old(self):
         # 老的分页逻辑
         page = xutils.get_argument("page", 1, type=int)
         page = max(1, page)
@@ -553,7 +539,7 @@ xurls = (
     r"/note/category"       , CategoryHandler,
     r"/note/default"        , DefaultListHandler,
     r"/note/ungrouped"      , DefaultListHandler,
-    r"/note/public"         , PublicGroupHandler,
+    # r"/note/public"         , PublicGroupHandler,
     r"/note/removed"        , RemovedHandler,
     r"/note/archived"       , ArchivedHandler,
     r"/note/sticky"         , StickyHandler,

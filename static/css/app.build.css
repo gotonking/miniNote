@@ -3,7 +3,7 @@
  * 重写默认浏览器样式
  * @author xupingmao
  * @since 2020/01/08
- * @modified 2020/01/08 00:52:42
+ * @modified 2020/01/22 18:30:57
  */
 
 * {
@@ -55,6 +55,7 @@ input {
 
 textarea, input {
     border: 1px solid #ccc;
+    border-radius: 0px;
 }
 
 textarea:focus, input:focus {
@@ -131,7 +132,7 @@ table td {
  * 通用的CSS样式
  * @author xupingmao
  * @since 2017/12/16
- * @modified 2020/01/12 20:30:23
+ * @modified 2020/02/02 14:51:39
  */
 
 /** marked 样式 **/
@@ -175,42 +176,6 @@ table td {
 
 .marked-strong>a {
     color: red;
-}
-
-.col-md-1{float:left;width:8.3%;}
-.col-md-2{float:left;width:16.7%;}
-.col-md-3{float:left;width:25%;}
-.col-md-4{float:left;width:33.3%;}
-.col-md-5{float:left;width:41.7%;}
-.col-md-6{float:left;width:50%;}
-.col-md-7{float:left;width:58.3%;}
-.col-md-8{float:left;width:66.7%;}
-.col-md-9{float:left;width:75%;}
-.col-md-10{float:left;width:83.3%;}
-.col-md-11{float:left;width:91.7%;}
-.col-md-12{float:left;width:100%;}
-.col-md-offset-12{margin-left:100%;}
-.col-md-offset-11{margin-left:91.66666666666666%;}
-.col-md-offset-10{margin-left:83.33333333333334%;}
-.col-md-offset-9{margin-left:75%;}
-.col-md-offset-8{margin-left:66.66666666666666%;}
-.col-md-offset-7{margin-left:58.333333333333336%;}
-.col-md-offset-6{margin-left:50%;}
-.col-md-offset-5{margin-left:41.66666666666667%;}
-.col-md-offset-4{margin-left:33.33333333333333%;}
-.col-md-offset-3{margin-left:25%;}
-.col-md-offset-2{margin-left:16.666666666666664%;}
-.col-md-offset-1{margin-left:8.333333333333332%;}
-.col-md-offset-0{margin-left:0;}
-
-.top-offset-1{margin-top:5px;}
-.top-offset-2{margin-top:10px;}
-.bottom-offset-1{margin-bottom:5px;}
-
-.row{float: left;width: 100%;overflow: auto;}
-
-.pad10 {
-    padding: 10px;
 }
 
 /** 标题样式 **/
@@ -259,6 +224,10 @@ table td {
 
 .path-link {
     line-height: 28px;
+}
+
+.danger-link {
+    color: red;
 }
 
 .selected-link {
@@ -328,7 +297,7 @@ table td {
     color: #fff;
     text-decoration: none;
     margin-top: 5px;
-    padding: 1px 7px 2px;
+    padding: 3px 7px 3px;
     font-size: 12px;
     line-height: 18px;
     border-radius: 3px;
@@ -355,7 +324,6 @@ table td {
     background-color: #ccc;
 }
 
-
 .btn-danger {
     background-color: #f00;
     border-radius: 3px;
@@ -363,6 +331,10 @@ table td {
 
 .btn-danger:hover {
     background-color: #c00;
+}
+
+.btn-line-height {
+    line-height: 32px;
 }
 
 .inline-btn {
@@ -374,6 +346,7 @@ table td {
     cursor: pointer;
 }
 
+/** 表格 **/
 .no-border-table td {
     border: none;
 }
@@ -700,6 +673,7 @@ li.menu-item:hover {
     padding: 5px;
     margin: 5px;
     border: 1px solid #ccc;
+    cursor: pointer;
 }
 
 .tag-span:hover {
@@ -803,6 +777,8 @@ li.menu-item:hover {
     color: #fff;
     padding: 5px;
     cursor: move;
+    height: 36px;
+    line-height: 26px;
 }
 
 .x-dialog-body {
@@ -1231,10 +1207,14 @@ li.menu-item:hover {
     display: inline-block;
 }
 
+.dropdown-btn {
+    margin-right: 0px;
+}
+
 .dropdown-content {
     display: none;
     position: absolute;
-    top: 30px;
+    top: 35px;
     left: -67px;
     background-color: #f9f9f9;
     min-width: 120px;
@@ -1277,6 +1257,10 @@ li.menu-item:hover {
     height: 16px;
 }
 
+.icon-check {
+    margin: 0px;
+}
+
 .icon-next, .icon-right {
     display: block;
     background-image: url(/static/image/icon_right.png);
@@ -1305,6 +1289,17 @@ li.menu-item:hover {
     height: 16px;
     background-size: cover;
     background-image: url(/static/image/icon_script.svg);
+}
+
+.icon-dict {
+    display: block;
+    margin-right: 3px;
+    margin-top: 4px; /* line-height是25px */
+    float: left;
+    width: 16px;
+    height: 16px;
+    background-size: cover;
+    background-image: url(/static/image/icon_dict.svg);
 }
 
 .mobile-only {
@@ -1401,6 +1396,39 @@ li.menu-item:hover {
         display: none;
     }
 }
+
+
+/* 高优先级样式 */
+.col-md-1{float:left;width:8.3%;}
+.col-md-2{float:left;width:16.7%;}
+.col-md-3{float:left;width:25%;}
+.col-md-4{float:left;width:33.3%;}
+.col-md-5{float:left;width:41.7%;}
+.col-md-6{float:left;width:50%;}
+.col-md-7{float:left;width:58.3%;}
+.col-md-8{float:left;width:66.7%;}
+.col-md-9{float:left;width:75%;}
+.col-md-10{float:left;width:83.3%;}
+.col-md-11{float:left;width:91.7%;}
+.col-md-12{float:left;width:100%;}
+.col-md-offset-12{margin-left:100%;}
+.col-md-offset-11{margin-left:91.66666666666666%;}
+.col-md-offset-10{margin-left:83.33333333333334%;}
+.col-md-offset-9{margin-left:75%;}
+.col-md-offset-8{margin-left:66.66666666666666%;}
+.col-md-offset-7{margin-left:58.333333333333336%;}
+.col-md-offset-6{margin-left:50%;}
+.col-md-offset-5{margin-left:41.66666666666667%;}
+.col-md-offset-4{margin-left:33.33333333333333%;}
+.col-md-offset-3{margin-left:25%;}
+.col-md-offset-2{margin-left:16.666666666666664%;}
+.col-md-offset-1{margin-left:8.333333333333332%;}
+.col-md-offset-0{margin-left:0;}
+.top-offset-1{margin-top:5px;}
+.top-offset-2{margin-top:10px;}
+.bottom-offset-1{margin-bottom:5px;}
+.row{float: left;width: 100%;overflow: auto;}
+.pad10 {padding: 10px;}
 
 
 /**
@@ -1665,7 +1693,7 @@ li.menu-item:hover {
  * 笔记的CSS样式
  * @author xupingmao
  * @since 2019/11/24
- * @modified 2020/01/12 20:45:07
+ * @modified 2020/02/02 14:36:13
 */
 
 
@@ -1864,11 +1892,51 @@ li.menu-item:hover {
     float: right;
     color: black;
 }
+
+.book-size-span {
+    color: #888;
+}
+
+/** group select **/
+
+.group-select-search {
+    float: left;
+    width: 100%;
+    padding: 5px;
+}
+
+.group-select-header {
+    width: 100%;
+    padding: 5px;
+    margin: 0px;
+    background-color: #eee;
+    /*float: left;*/
+    /*display: block;*/
+}
+
+.group-select-size {
+    float: right;
+    color: #ccc;
+}
+
+.group-select-row {
+    padding-left: 20px;
+    margin: 14px 0px 14px 0px;
+    padding-top: 0px;
+    padding-right: 0px;
+    /*float: left;*/
+    /*width: 100%;*/
+}
+/** group select end **/
+
+.dict-list-value {
+    color: #000;
+}
 /**
  * 插件的CSS样式
  * @author xupingmao
  * @since 2019/12/15
- * @modified 2019/12/15 15:03:11
+ * @modified 2020/01/21 01:11:39
 */
 
 /** 插件 **/
@@ -1880,4 +1948,10 @@ li.menu-item:hover {
     margin-bottom: 10px;
     border: 1px solid #ccc;
     height: 32px;
+}
+
+.plugin-head {
+    float: left;
+    width: 100%;
+    margin-bottom: 5px;
 }

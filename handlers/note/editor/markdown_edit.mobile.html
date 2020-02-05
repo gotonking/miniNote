@@ -1,0 +1,83 @@
+{% extends base.html %} {% block head %}
+<script type="text/javascript" src="/static/lib/webuploader/webuploader.nolog.min.js"></script>
+
+<style>
+    textarea {
+        outline: none;
+        border-radius: 0px;
+        font-size: 14px;
+    }
+
+    textarea:focus {
+        border: 1px solid #8cc;
+    }
+</style>
+{% end %} 
+
+{% block body %} 
+
+{% init error = "" %} 
+
+<div class="alert">
+    {{error}}
+</div>
+
+<div class="grid-card">
+    <form id="mainFrame" action="/note/update" enctype="multipart/form-data" method="POST" class="col-md-12">
+        <div class="col-md-12" id="submit-div">
+            <div>
+                <span id="fileId" class="hide">{{file.id}}</span>
+            </div>
+            <div class="grid-title">
+                {% for i, item in enumerate(pathlist) %}
+                    {% if i > 0 %} / {% end %}<a href="{{item.url}}" class="link2">{{ item.name }}</a>
+                {% end %}
+            </div>
+        </div>
+
+        <div class="col-md-12">
+            <span id="result" style="color:green"></span>
+            <div class="col-md-12" id="editor-area">
+                <div class="col-md-12">
+                    <div id="edit-div">
+                        <input style="display:none" name="id" value="{{file.id}}" />
+                        <input type="text" name="version" value="{{file.version}}" class="hide" />
+                        <input type="text" name="type" value="md" class="hide" />
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <div id="editor" class="col-md-12" style="height: auto; ">
+                        <div id="markdown-input-div" class="col-md-12">
+                            <textarea id="markdown-input" class="form-control" name="content" rows=15>{{file.content}}</textarea>
+                        </div>
+
+                        <div id="markdown-output-div" class="col-md-6 hide"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <input type="file" id="uploadFileInput" class="hide"/>
+        <input type="button" id="addAttachmentBtn" class="send-button btn btn-default" value="添加附件"/>
+        <input type="submit" class="send-button btn" value="保存">
+    </form>
+</div>
+
+<script type="text/javascript">
+// 支持上传文件
+$(function () {
+    $("#addAttachmentBtn").click(function () {
+        xnote.requestUpload("#uploadFileInput", false, function (resp) {
+            console.log(resp);
+            var fileLink = resp.link;
+            var oldContent = $("#markdown-input").val();
+            var newContent = oldContent + "\n" + fileLink + "\n";
+            $("#markdown-input").val(newContent);
+        });
+    });
+})
+</script>
+
+<!-- GROUPS: {{file.groups}} -->
+{% end %}

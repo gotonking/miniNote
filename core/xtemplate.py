@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 # @author xupingmao <578749341@qq.com>
 # @since 2016/12/05
-# @modified 2019/12/18 00:16:09
+# @modified 2020/01/30 16:13:43
 import os
 import json
 import web
@@ -23,6 +23,8 @@ NAMESPACE    = dict(
 )
 
 _lang_dict = dict()
+_mobile_name_dict = dict()
+_loader = None
 
 def load_languages():
     """加载系统语言配置"""
@@ -139,6 +141,7 @@ def pre_render(kw):
     kw["_user_config"]   = get_user_config(user_name)
     kw["_notice_count"] = get_message_count(user_name)
     kw["T"]             = T
+    kw["HOME_PATH"]     = xconfig.get_user_config(user_name, "HOME_PATH")
     if hasattr(web.ctx, "env"):
         kw["HOST"] = web.ctx.env.get("HTTP_HOST")
 
@@ -152,6 +155,42 @@ def pre_render(kw):
 
 def post_render(kw):
     pass
+
+def get_mobile_template(name):
+    global _mobile_name_dict
+    global TEMPLATE_DIR
+
+    mobile_name = _mobile_name_dict.get(name)
+    if mobile_name != None:
+        return mobile_name
+
+    if name.endswith(".html"):
+        # 检查文件是否存在
+        mobile_name = name[:-5] + ".mobile.html"
+        fpath = os.path.join(TEMPLATE_DIR, mobile_name)
+        if os.path.exists(fpath):
+            _mobile_name_dict[name] = mobile_name
+            return mobile_name
+    _mobile_name_dict[name] = name
+    return name
+
+def is_mobile_device(user_agent):
+    if user_agent is None:
+        return False
+    user_agent_lower = user_agent.lower()
+    for name in ("iphone", "android"):
+        if user_agent_lower.find(name) >= 0:
+            return True
+    return False
+
+def render_by_ua(name, **kw):
+    user_agent = get_user_agent()
+    print(user_agent)
+    if is_mobile_device(user_agent):
+        # iPhone的兼容性不行，要用简化版页面，安卓暂时不用
+        mobile_name = get_mobile_template(name)
+        return render(mobile_name, **kw)
+    return render(name, **kw)
 
 @xutils.timeit(name = "Template.Render", logfile = True)
 def render(template_name, **kw):
@@ -197,6 +236,9 @@ def reload():
     _loader = XnoteLoader(TEMPLATE_DIR, namespace = NAMESPACE)
     _loader.reset()
     load_languages()
+
+def init():
+    reload()
 
 class Panel:
 
@@ -315,6 +357,7 @@ class BasePlugin:
     body   = Panel()
     footer = Panel()
     btn_text = T("处理")
+    show_search = True
     
     def __init__(self):
         # 输入框的行数
@@ -403,6 +446,7 @@ class BasePlugin:
             output      = self.output + output,
             css_style   = self.css_style,
             show_aside  = self.show_aside,
+            show_search = self.show_search,
             html        = self.html,
             search_action = self.search_action,
             search_placeholder = self.search_placeholder)
@@ -444,4 +488,3 @@ class BasePlugin:
 BaseTextPage   = BasePlugin
 BaseTextPlugin = BasePlugin
 
-reload()

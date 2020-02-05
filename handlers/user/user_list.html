@@ -1,0 +1,111 @@
+{% extends base %}
+
+{% block head %}
+
+<style type="text/css">
+    .td-no {
+        width: 50px;
+    }
+
+    .label {
+        width: 150px;
+        text-align: right;
+        display: table-cell;
+    }
+
+    .dialog-wrap {
+        padding: 10px;
+    }
+
+    .list-heading {
+        line-height: 32px;
+    }
+
+</style>
+
+{% end %}
+
+{% block body %}
+
+<div class="card">
+    <h3 class="card-title list-heading">
+        <span>用户管理</span>
+        <a class="btn float-right add-user-btn">新增</a>
+    </h3>
+
+    <table class="table col-md-12">
+        <tr>
+            <th class="index-td">编号</th>
+            <th>登录名</th>
+            <th>上次登录</th>
+            <th>操作</th>
+        </tr>
+        {% for index, name in enumerate(sorted(user_dict)) %}
+        <tr>
+            <td class="index-td">{{index+1}}</td>
+            <td>{{name}}</td>
+            <td>{{user_dict[name].login_time}}</td>
+            <td>
+                <a class="link edit-btn" href="/system/user?name={{name}}">编辑</a>
+                {% if name != "admin" %}
+                    <a data-name="{{name}}" class="red delete-user-btn">删除</a>
+                {% end %}
+            </td>
+        </tr>
+        {% end %}
+    </table>
+</div>
+
+<div id="dialogContent" class="col-md-12 hide">
+    <div class="dialog-wrap">
+        <form class="dialog-form">
+            <table class="no-border-table col-md-12">
+                <tr>
+                    <td class="label">用户名</td>
+                    <td><input name="name" value=""></td>
+                </tr>
+                <tr>
+                    <td class="label">密码</td>
+                    <td><input name="password" value=""></td>
+                </tr>
+                <tr>
+                    <td class="label">salt</td>
+                    <td class="salt"></td>
+                </tr>
+                <tr>
+                    <td class="label">token</td>
+                    <td class="token"></td>
+                </tr>
+                <tr>
+                    <td class="label">上次更新</td>
+                    <td class="mtime"></td>
+                </tr>
+                <tr>
+                    <td class="label">上次登录</td>
+                    <td class="login_time"></td>
+                </tr>
+            </table>
+        </form>
+    </div>
+</div>
+
+{% include user/component/delete_user.html %}
+
+<script type="text/javascript">
+$(function () {
+
+    $(".add-user-btn").click(function (e) {
+        xnote.prompt("新增用户", "", function (name) {
+            $.post("/user/add", {name: name}, function (resp) {
+                if (resp.code == "success") {
+                    window.location = "/system/user?name=" + name;
+                } else {
+                    xnote.alert("新增用户失败:" + resp.message);
+                }
+            });
+        });
+    });
+})
+</script>
+
+{% end %}

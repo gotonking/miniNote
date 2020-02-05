@@ -25,10 +25,14 @@
         {% include message/header.html %}
     {% end %}
 
+    {% include message/component/topic-dialog.html %}
+
     <div class="message-input-box card" v-if="inputBoxVisible">
         <textarea class="col-md-12 input-box" v-model="input" v-bind:rows="input.count('\n')+3" v-bind:placeholder="placeholder">{{default_content}}</textarea>
 
         <input type="file" id="filePicker" class="hide" multiple/>
+
+        <input type="button" name="" class="send-button btn btn-default select-topic-btn" value="#话题" @click="">
         <input type="button" id="filePickerBtn" class="send-button btn btn-default" value="添加附件"/>
         <input type="button" name="" class="send-button btn" value="创建" @click="createMessage()">
     </div>
@@ -87,6 +91,8 @@
                     <div class="msg-item-option">
                         <!-- task 专用 -->
                         <a class="smallText msg-left-op-link" v-if="message.tag == 'task'" v-bind:msg-id="message.id" href="javascript:void(0)" @click="finishMessage($event)">完成</a>
+
+                        <a class="smallText msg-left-op-link" v-if="message.tag == 'task'" v-bind:msg-id="message.id" href="javascript:void(0)" @click="updateTag($event, 'log')">取消</a>
 
                         <a class="smallText msg-left-op-link" v-if="message.show_reopen_btn" v-bind:msg-id="message.id" href="javascript:void(0)" @click="openMessage($event)">重做</a>
 

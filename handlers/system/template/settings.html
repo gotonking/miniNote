@@ -6,6 +6,10 @@
     width: 30%;
 }
 
+select {
+    width: 150px;
+}
+
 {% if not _is_admin %}
     .admin-visible {
         display: none;
@@ -108,9 +112,11 @@
         <tr class="admin-visible">
             <td class="key">主题</td>
             <td>
-                <input type="radio" name="THEME" default-value="{{xconfig.THEME}}" value="standard">默认
-                <input type="radio" name="THEME" default-value="{{xconfig.THEME}}" value="card">卡片
-                <input type="radio" name="THEME" default-value="{{xconfig.THEME}}" value="left">侧边栏
+                <select name="THEME" data-type="str" value="{{xconfig.THEME}}">
+                    <option value="standard">默认</option>
+                    <option value="card">卡片</option>
+                    <option value="left">侧边栏</option>
+                </select>
             </td>
         </tr>
 
@@ -122,11 +128,13 @@
             </td>
         </tr>
 
-        <tr class="admin-visible">
-            <td class="key">首页风格</td>
+        <tr class="user-visible">
+            <td class="key">首页</td>
             <td>
-                <input type="radio" name="HOME_PATH" default-value="{{xconfig.HOME_PATH}}" value="/note/books">列表
-                <input type="radio" name="HOME_PATH" default-value="{{xconfig.HOME_PATH}}" value="/note/category">网格
+                <select name="HOME_PATH" data-type="str" value="{{HOME_PATH}}">
+                    <option value="/note/timeline">项目列表</option>
+                    <option value="/note/index">笔记索引</option>
+                </select>
             </td>
         </tr>
 
@@ -160,8 +168,10 @@
         <tr class="admin-visible">
             <td class="key">页面打开</td>
             <td>
-                <input type="radio" name="PAGE_OPEN" default-value="{{xconfig.PAGE_OPEN}}" value="self">当前页面
-                <input type="radio" name="PAGE_OPEN" default-value="{{xconfig.PAGE_OPEN}}" value="dialog">弹层
+                <select name="PAGE_OPEN" data-type="str" value="{{xconfig.PAGE_OPEN}}">
+                    <option value="self">当前页面</option>
+                    <option value="dialog">弹层</option>
+                </select>
             </td>
         </tr>
 
